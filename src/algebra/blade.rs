@@ -1,4 +1,4 @@
-use crate::{metric::Metric, shape::Shape};
+use crate::algebra::{metric::Metric, shape::Shape};
 
 pub struct Blade(pub f64, pub Shape);
 

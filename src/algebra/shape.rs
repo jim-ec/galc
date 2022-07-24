@@ -1,7 +1,9 @@
 use crate::{
+    algebra::{
+        metric::{Metric, Square},
+        sign::Sign,
+    },
     common::{even, odd},
-    metric::{Metric, Square},
-    sign::Sign,
 };
 
 /// Encodes a factorization of a blade:

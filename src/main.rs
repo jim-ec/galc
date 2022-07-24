@@ -1,15 +1,18 @@
 #![allow(dead_code)]
 
-use crate::{blade::Blade, shape::Shape};
+use crate::{
+    algebra::blade::Blade,
+    algebra::{
+        metric::{Metric, Square},
+        shape::Shape,
+    },
+};
 
-mod blade;
-mod common;
-mod metric;
-mod shape;
-mod sign;
+pub mod algebra;
+pub mod common;
 
 fn main() {
-    let metric = metric::Metric(vec![metric::Square::Pos, metric::Square::Pos]);
+    let metric = Metric(vec![Square::Pos, Square::Pos]);
     let a = Blade(2.0, Shape(vec![true, true]));
     let b = Blade(3.0, Shape(vec![true, false]));
     let c = a.geometric(&b, &metric);
