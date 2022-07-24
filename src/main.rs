@@ -9,7 +9,6 @@ use crate::{
 };
 
 pub mod algebra;
-pub mod common;
 
 fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos]);

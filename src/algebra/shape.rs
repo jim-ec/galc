@@ -1,9 +1,6 @@
-use crate::{
-    algebra::{
-        metric::{Metric, Square},
-        sign::Sign,
-    },
-    common::{even, odd},
+use crate::algebra::{
+    metric::{Metric, Square},
+    sign::Sign,
 };
 
 /// Encodes a factorization of a blade:
@@ -188,4 +185,12 @@ impl std::fmt::Display for Shape {
         }
         Ok(())
     }
+}
+
+fn even(n: usize) -> bool {
+    n & 1 == 0
+}
+
+fn odd(n: usize) -> bool {
+    n & 1 != 0
 }
