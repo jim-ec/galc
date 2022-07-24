@@ -10,6 +10,9 @@ use crate::{
 
 pub mod algebra;
 
+#[cfg(test)]
+mod test;
+
 fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos]);
     let a = Blade(2.0, Shape(vec![true, true]));
