@@ -11,6 +11,10 @@ impl Blade {
         Blade(1.0, Shape(vec![false; dimension]))
     }
 
+    pub fn from(scalar: f64, dimension: usize) -> Blade {
+        Blade(scalar, Shape(vec![false; dimension]))
+    }
+
     pub fn geometric(&self, rhs: &Blade, metric: &Metric) -> Blade {
         if let Some((sign, shape)) = self.1.geometric(&rhs.1, metric) {
             Blade(sign * self.0 * rhs.0, shape)
@@ -92,19 +96,22 @@ impl Blade {
     }
 
     pub fn norm_squared(&self, metric: &Metric) -> f64 {
-        self.scalar(self, metric).0
+        self.scalar(&self.reverse(), metric).0
     }
 
     pub fn norm(&self, metric: &Metric) -> f64 {
         self.norm_squared(metric).sqrt()
     }
 
-    pub fn normalized(&self, metric: &Metric) -> Option<Blade> {
-        let n = self.norm(metric);
-        if n == 0.0 {
-            return None;
+    pub fn inverse(&self, metric: &Metric) -> Option<Blade> {
+        let n = self.scalar(&self.reverse(), metric).0;
+        if n != 0.0 {
+            let mut inverse = self.reverse();
+            inverse.0 /= n;
+            Some(inverse)
+        } else {
+            None
         }
-        Some(Blade(self.1.reverse() * self.0 / n, self.1.clone()))
     }
 }
 

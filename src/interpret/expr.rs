@@ -7,4 +7,11 @@ pub enum Expr {
     RightContraction(Box<Expr>, Box<Expr>),
     Inner(Box<Expr>, Box<Expr>),
     Scalar(Box<Expr>, Box<Expr>),
+    Dual(Box<Expr>),
+    Reverse(Box<Expr>),
+    Inverse(Box<Expr>),
+    Involute(Box<Expr>),
+    Conjugate(Box<Expr>),
+    Grade(Box<Expr>),
+    AntiGrade(Box<Expr>),
 }

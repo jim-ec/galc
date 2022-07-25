@@ -68,5 +68,12 @@ pub fn eval(expr: Expr, metric: &Metric) -> Blade {
             let rhs = eval(*rhs, metric);
             lhs.scalar(&rhs, metric)
         }
+        Expr::Dual(x) => eval(*x, metric).dual(),
+        Expr::Reverse(x) => eval(*x, metric).reverse(),
+        Expr::Inverse(x) => eval(*x, metric).inverse(metric).expect("Inverse of 0"),
+        Expr::Involute(x) => eval(*x, metric).involute(),
+        Expr::Conjugate(x) => eval(*x, metric).conjugate(),
+        Expr::Grade(x) => Blade::from(eval(*x, metric).grade() as f64, metric.dimension()),
+        Expr::AntiGrade(x) => Blade::from(eval(*x, metric).anti_grade() as f64, metric.dimension()),
     }
 }
