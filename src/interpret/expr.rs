@@ -1,17 +1,34 @@
 pub enum Expr {
-    Blade(f64, Vec<usize>),
-    Geometric(Box<Expr>, Box<Expr>),
-    Exterior(Box<Expr>, Box<Expr>),
-    Regressive(Box<Expr>, Box<Expr>),
-    LeftContraction(Box<Expr>, Box<Expr>),
-    RightContraction(Box<Expr>, Box<Expr>),
-    Inner(Box<Expr>, Box<Expr>),
-    Scalar(Box<Expr>, Box<Expr>),
-    Dual(Box<Expr>),
-    Reverse(Box<Expr>),
-    Inverse(Box<Expr>),
-    Involute(Box<Expr>),
-    Conjugate(Box<Expr>),
-    Grade(Box<Expr>),
-    AntiGrade(Box<Expr>),
+    Blade(f64, Basis),
+    Binary(Binary, Box<Expr>, Box<Expr>),
+    Unary(Unary, Box<Expr>),
+}
+
+#[derive(Clone, Copy)]
+pub enum Binary {
+    Geometric,
+    Exterior,
+    Regressive,
+    LeftContraction,
+    RightContraction,
+    Inner,
+    Scalar,
+}
+
+#[derive(Clone, Copy)]
+pub enum Unary {
+    Neg,
+    Dual,
+    Reverse,
+    Inverse,
+    Involute,
+    Conjugate,
+    Grade,
+    AntiGrade,
+}
+
+#[derive(Clone)]
+pub enum Basis {
+    Pseudoscalar,
+    Vectors(Vec<usize>),
 }
