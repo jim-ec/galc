@@ -139,6 +139,8 @@ impl std::fmt::Display for Blade {
             write!(f, "{}", s)
         } else if r > 0 && s == 1.0 {
             write!(f, "{}", self.1)
+        } else if r > 0 && s == -1.0 {
+            write!(f, "-{}", self.1)
         } else {
             write!(f, "{}{}", s, self.1)
         }
