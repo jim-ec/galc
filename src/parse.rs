@@ -25,7 +25,9 @@ pub fn parse(string: &str) -> Option<Expr> {
 }
 
 fn expr_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
-    recursive(|expr| binary_parser(expr.clone())).boxed()
+    recursive(|expr| binary_parser(expr.clone()))
+        .then_ignore(end())
+        .boxed()
 }
 
 fn number_parser<'a>() -> impl Parser<char, f64, Error = Simple<char>> + Clone + 'a {
