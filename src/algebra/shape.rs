@@ -1,4 +1,4 @@
-use crate::algebra::{
+use super::{
     metric::{Metric, Square},
     sign::Sign,
 };
