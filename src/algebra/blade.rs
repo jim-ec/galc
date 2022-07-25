@@ -7,8 +7,28 @@ impl Blade {
         Blade(0.0, Shape(vec![false; dimension]))
     }
 
+    pub fn one(dimension: usize) -> Blade {
+        Blade(1.0, Shape(vec![false; dimension]))
+    }
+
     pub fn geometric(&self, rhs: &Blade, metric: &Metric) -> Blade {
         if let Some((sign, shape)) = self.1.geometric(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, shape)
+        } else {
+            Blade::null(self.1.dimension())
+        }
+    }
+
+    pub fn exterior(&self, rhs: &Blade, metric: &Metric) -> Blade {
+        if let Some((sign, shape)) = self.1.exterior(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, shape)
+        } else {
+            Blade::null(self.1.dimension())
+        }
+    }
+
+    pub fn regressive(&self, rhs: &Blade, metric: &Metric) -> Blade {
+        if let Some((sign, shape)) = self.1.regressive(&rhs.1, metric) {
             Blade(sign * self.0 * rhs.0, shape)
         } else {
             Blade::null(self.1.dimension())
@@ -39,11 +59,11 @@ impl Blade {
         }
     }
 
-    pub fn scalar(&self, rhs: &Blade, metric: &Metric) -> f64 {
-        if let Some((sign, _)) = self.1.scalar(&rhs.1, metric) {
-            sign * self.0 * rhs.0
+    pub fn scalar(&self, rhs: &Blade, metric: &Metric) -> Blade {
+        if let Some((sign, shape)) = self.1.scalar(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, shape)
         } else {
-            0.0
+            Blade::null(self.1.dimension())
         }
     }
 
@@ -72,7 +92,7 @@ impl Blade {
     }
 
     pub fn norm_squared(&self, metric: &Metric) -> f64 {
-        self.scalar(self, metric)
+        self.scalar(self, metric).0
     }
 
     pub fn norm(&self, metric: &Metric) -> f64 {
@@ -106,6 +126,10 @@ impl std::ops::Mul<Blade> for f64 {
 
 impl std::fmt::Display for Blade {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}{}", self.0, self.1)
+        write!(f, "{}", self.0)?;
+        if self.1.grade() > 0 {
+            write!(f, "{}", self.1)?;
+        }
+        Ok(())
     }
 }

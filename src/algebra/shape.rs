@@ -9,6 +9,10 @@ use crate::algebra::{
 pub struct Shape(pub Vec<bool>);
 
 impl Shape {
+    pub fn one(dimension: usize) -> Shape {
+        Shape(vec![false; dimension])
+    }
+
     pub fn dimension(&self) -> usize {
         self.0.len()
     }
@@ -110,7 +114,7 @@ impl Shape {
 
     // Compute the regressive product between two blades using the identity
     /// `A ∨ B = J(J(A) ∧ J(B))`
-    pub fn regressive(self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
+    pub fn regressive(&self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
         self.dual()
             .exterior(&rhs.dual(), metric)
             .map(|(sign, product)| (sign, product.dual()))
