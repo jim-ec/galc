@@ -1,25 +1,20 @@
 #![allow(dead_code)]
 
-use crate::{
-    algebra::blade::Blade,
-    algebra::{
-        metric::{Metric, Square},
-        shape::Shape,
-    },
-};
+use interpret::{eval::eval, expr::Expr};
+
+use crate::algebra::metric::{Metric, Square};
 
 pub mod algebra;
+pub mod interpret;
 
 #[cfg(test)]
 mod test;
 
 fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos]);
-    let a = Blade(2.0, Shape(vec![true, true]));
-    let b = Blade(3.0, Shape(vec![true, false]));
-    let c = a.geometric(&b, &metric);
-
-    println!("a = {a}");
-    println!("b = {b}");
-    println!("b = {c}");
+    let a = Expr::Blade(2.0, vec![0]);
+    let b = Expr::Blade(3.0, vec![0]);
+    let c = Expr::Scalar(Box::new(a), Box::new(b));
+    let result = eval(c, &metric);
+    println!("{result}");
 }
