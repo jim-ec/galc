@@ -15,7 +15,7 @@ mod test;
 fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos, Square::Pos]);
 
-    let string = "e0 >> -e01";
+    let string = "undefined";
 
     let expr = if let Some(expr) = parse(string) {
         expr
@@ -25,6 +25,6 @@ fn main() {
 
     match eval(expr, &metric) {
         Ok(result) => println!("{result}"),
-        Err(Undefined(cause)) => println!("undefined: {}", cause),
+        Err(Undefined(cause)) => println!("{}", cause),
     };
 }

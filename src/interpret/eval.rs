@@ -12,7 +12,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                 for &vector in &vectors {
                     if vector >= metric.dimension() {
                         return Err(Undefined(format!(
-                            "Invalid basis-vector {vector} for algebra of dimension {}",
+                            "Invalid basis-vector e{vector} for algebra of dimension {}",
                             metric.dimension()
                         )));
                     }
@@ -92,5 +92,9 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                 _ => Err(Undefined(format!("Unknown function {name}"))),
             }
         }
+        Expr::Variable(name) => match name.as_str() {
+            "undefined" => Err(Undefined(format!("Undefined computation"))),
+            _ => Err(Undefined(format!("Unknown variable {name}"))),
+        },
     }
 }

@@ -3,6 +3,7 @@ pub enum Expr {
     Binary(Binary, Box<Expr>, Box<Expr>),
     Unary(Unary, Box<Expr>),
     Application(String, Vec<Expr>),
+    Variable(String),
 }
 
 #[derive(Clone, Copy)]

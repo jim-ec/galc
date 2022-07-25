@@ -82,17 +82,33 @@ fn blade_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone +
     .boxed()
 }
 
+fn variable_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
+    text::ident().map(Expr::Variable)
+}
+
+fn application_parser<'a>(
+    expr: impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a,
+) -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
+    text::ident()
+        .then(
+            expr.clone()
+                .separated_by(just(','))
+                .delimited_by(just('('), just(')')),
+        )
+        .map(|(name, arguments)| Expr::Application(name, arguments))
+        .boxed()
+}
+
 fn atom_parser<'a>(
     expr: impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a,
 ) -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
-    blade_parser()
-        .or(expr.clone().delimited_by(just('('), just(')')))
-        .or(text::ident()
-            .then(
-                expr.clone()
-                    .separated_by(just(',').delimited_by(just('('), just(')'))),
-            )
-            .map(|(name, arguments)| Expr::Application(name, arguments)))
+    choice((
+        blade_parser(),
+        expr.clone().delimited_by(just('('), just(')')),
+        application_parser(expr),
+        variable_parser(),
+    ))
+    .boxed()
 }
 
 fn unary_parser<'a>(
