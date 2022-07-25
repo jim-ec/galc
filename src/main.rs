@@ -1,24 +1,29 @@
 #![allow(dead_code)]
 
-use interpret::{
-    eval::{eval, Undefined},
-    expr::Expr,
-};
+use interpret::eval::{eval, Undefined};
+use parse::parse;
 
 use crate::algebra::metric::{Metric, Square};
 
 pub mod algebra;
 pub mod interpret;
+pub mod parse;
 
 #[cfg(test)]
 mod test;
 
 fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos]);
-    let a = Expr::Blade(2.0, vec![0]);
-    let b = Expr::Blade(3.0, vec![2]);
-    let c = Expr::Geometric(Box::new(a), Box::new(b));
-    match eval(c, &metric) {
+
+    let string = "1 2 e i";
+
+    let expr = if let Some(expr) = parse(string) {
+        expr
+    } else {
+        return;
+    };
+
+    match eval(expr, &metric) {
         Ok(result) => println!("{result}"),
         Err(Undefined(cause)) => println!("undefined: {}", cause),
     };
