@@ -134,12 +134,13 @@ impl std::ops::Mul<Blade> for f64 {
 impl std::fmt::Display for Blade {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let r = self.1.grade();
-        if r == 0 || self.0 == 0.0 {
-            write!(f, "{}", self.0)
-        } else if r > 0 && self.0 == 1.0 {
+        let s = if self.0 != 0.0 { self.0 } else { self.0.abs() };
+        if r == 0 || s == 0.0 {
+            write!(f, "{}", s)
+        } else if r > 0 && s == 1.0 {
             write!(f, "{}", self.1)
         } else {
-            write!(f, "{}{}", self.0, self.1)
+            write!(f, "{}{}", s, self.1)
         }
     }
 }

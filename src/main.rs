@@ -15,7 +15,7 @@ mod test;
 fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos]);
 
-    let string = "1 2 e i";
+    let string = "agr(!i)";
 
     let expr = if let Some(expr) = parse(string) {
         expr

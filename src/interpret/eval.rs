@@ -62,8 +62,34 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                     .ok_or(Undefined(format!("Inverse of 0-blade"))),
                 Unary::Involute => Ok(x.involute()),
                 Unary::Conjugate => Ok(x.conjugate()),
-                Unary::Grade => Ok(Blade::from(x.grade() as f64, metric.dimension())),
-                Unary::AntiGrade => Ok(Blade::from(x.anti_grade() as f64, metric.dimension())),
+            }
+        }
+        Expr::Application(name, arguments) => {
+            let argument_count = arguments.len();
+            let mut arguments = arguments.into_iter();
+
+            let expect_arity = |arity: usize| -> Result<(), Undefined> {
+                if arity == argument_count {
+                    Ok(())
+                } else {
+                    Err(Undefined(format!(
+                        "Arity of {name} is {arity} but got {argument_count} arguments"
+                    )))
+                }
+            };
+
+            match name.as_str() {
+                "gr" => {
+                    expect_arity(1)?;
+                    let x = eval(arguments.next().unwrap(), metric)?;
+                    Ok(Blade::from(x.grade() as f64, metric.dimension()))
+                }
+                "agr" => {
+                    expect_arity(1)?;
+                    let x = eval(arguments.next().unwrap(), metric)?;
+                    Ok(Blade::from(x.anti_grade() as f64, metric.dimension()))
+                }
+                _ => Err(Undefined(format!("Unknown function {name}"))),
             }
         }
     }

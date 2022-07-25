@@ -2,6 +2,7 @@ pub enum Expr {
     Blade(f64, Basis),
     Binary(Binary, Box<Expr>, Box<Expr>),
     Unary(Unary, Box<Expr>),
+    Application(String, Vec<Expr>),
 }
 
 #[derive(Clone, Copy)]
@@ -23,8 +24,6 @@ pub enum Unary {
     Inverse,
     Involute,
     Conjugate,
-    Grade,
-    AntiGrade,
 }
 
 #[derive(Clone)]

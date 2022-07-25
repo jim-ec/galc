@@ -81,6 +81,12 @@ fn atom_parser<'a>(
     blade_parser()
         .or(scalar_parser())
         .or(expr.clone().delimited_by(just('('), just(')')))
+        .or(text::ident()
+            .then(
+                expr.clone()
+                    .separated_by(just(',').delimited_by(just('('), just(')'))),
+            )
+            .map(|(name, arguments)| Expr::Application(name, arguments)))
 }
 
 fn unary_parser<'a>(
