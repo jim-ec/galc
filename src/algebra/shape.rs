@@ -13,6 +13,10 @@ impl Shape {
         Shape(vec![false; dimension])
     }
 
+    pub fn pseudoscalar(dimension: usize) -> Shape {
+        Shape(vec![true; dimension])
+    }
+
     pub fn dimension(&self) -> usize {
         self.0.len()
     }
