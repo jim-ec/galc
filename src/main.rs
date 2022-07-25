@@ -13,9 +13,9 @@ pub mod parse;
 mod test;
 
 fn main() {
-    let metric = Metric(vec![Square::Pos, Square::Pos]);
+    let metric = Metric(vec![Square::Pos, Square::Pos, Square::Pos]);
 
-    let string = "agr(!i)";
+    let string = "e0 >> -e01";
 
     let expr = if let Some(expr) = parse(string) {
         expr
