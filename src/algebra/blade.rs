@@ -134,7 +134,7 @@ impl std::ops::Mul<Blade> for f64 {
 impl std::fmt::Display for Blade {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)?;
-        if self.1.grade() > 0 {
+        if self.0 != 0.0 && self.1.grade() > 0 {
             write!(f, "{}", self.1)?;
         }
         Ok(())

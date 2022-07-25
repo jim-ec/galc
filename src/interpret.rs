@@ -1,2 +1,2 @@
-pub mod expr;
 pub mod eval;
+pub mod expr;
