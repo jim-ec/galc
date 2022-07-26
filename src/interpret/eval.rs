@@ -71,6 +71,11 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                 Unary::Conjugate => Ok(x.conjugate()),
             }
         }
+        Expr::Norm(x) => {
+            let x = eval(*x, metric)?;
+            let y = x.norm(metric);
+            Ok(new_scalar(y))
+        }
         Expr::Application(name, arguments) => {
             let argument_count = arguments.len();
             let mut arguments = arguments.into_iter();

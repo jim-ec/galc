@@ -2,6 +2,7 @@ pub enum Expr {
     Blade(f64, Basis),
     Binary(Binary, Box<Expr>, Box<Expr>),
     Unary(Unary, Box<Expr>),
+    Norm(Box<Expr>),
     Application(String, Vec<Expr>),
     Variable(String),
 }

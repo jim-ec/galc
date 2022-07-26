@@ -106,7 +106,9 @@ fn atom_parser<'a>(
         application_parser(expr.clone()),
         variable_parser(),
         blade_parser(),
-        expr.delimited_by(just('('), just(')')),
+        expr.clone().delimited_by(just('('), just(')')),
+        expr.clone().delimited_by(just('|'), just('|'))
+        .map(|expr| Expr::Norm(Box::new(expr))),
     ))
     .boxed()
 }
@@ -147,7 +149,7 @@ fn binary_parser<'a>(
                 just(">>").to(Binary::LeftContraction),
                 just("<<").to(Binary::RightContraction),
                 just("<>").to(Binary::Inner),
-                just("|").to(Binary::Scalar),
+                just("%").to(Binary::Scalar),
                 just("/").to(Binary::Divide),
             ))
             .padded()
