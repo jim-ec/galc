@@ -3,28 +3,25 @@ use super::{
     sign::Sign,
 };
 
-/// Blades are geometric products of one or more basis vectors.
-/// A shape encodes which basis vectors are part of such a product, using the invariant:
-/// `shape.0[i]` ⟷ The `i`th basis vector is a factor.
-/// Thus shapes are oblivious to factor permutations.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Shape(pub Vec<bool>);
+pub struct Basis(pub Vec<bool>);
 
-impl Shape {
-    pub fn one(dimension: usize) -> Shape {
-        Shape(vec![false; dimension])
+impl Basis {
+    /// Basis for a scalar.
+    pub fn one(dimension: usize) -> Basis {
+        Basis(vec![false; dimension])
     }
 
-    pub fn pseudoscalar(dimension: usize) -> Shape {
-        Shape(vec![true; dimension])
+    /// Basis for a pseudo-scalar.
+    pub fn pseudoscalar(dimension: usize) -> Basis {
+        Basis(vec![true; dimension])
     }
 
     pub fn dimension(&self) -> usize {
         self.0.len()
     }
 
-    /// Parity of the reversion operator, rewriting its factors in reverse order.
-    /// - `rev(eᵢⱼ) = eⱼᵢ = -eᵢⱼ` ⇔ `i ≠ j`
+    /// Parity of the reversion operator.
     pub fn reverse(&self) -> Sign {
         let r = self.grade();
         if r > 0 && odd(r * (r - 1) / 2) {
@@ -49,15 +46,12 @@ impl Shape {
     }
 
     /// Poincaré duality operator
-    pub fn dual(&self) -> Shape {
-        Shape(self.0.iter().map(|vector| !vector).collect())
+    pub fn dual(&self) -> Basis {
+        Basis(self.0.iter().map(|vector| !vector).collect())
     }
 
-    /// Compute the geometric product between two blades.
-    /// - `eᵢeᵢ = 1`
-    /// - `eᵢeⱼ = eᵢⱼ` ⇔ `i ≠ j`
-    ///- `eᵢeⱼ = -eⱼeᵢ`
-    pub fn geometric(&self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
+    /// Geometric product
+    pub fn geometric(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         debug_assert_eq!(
             self.dimension(),
             rhs.dimension(),
@@ -73,8 +67,6 @@ impl Shape {
 
         for i in 0..self.dimension() {
             if self.0[i] {
-                // Since shapes do not encode any order of factorization, a sign reversal
-                // must accomodate for each permutation.
                 for j in 0..i {
                     if rhs.0[j] {
                         sign = -sign;
@@ -102,14 +94,11 @@ impl Shape {
             }
         }
 
-        Some((sign, Shape(vectors)))
+        Some((sign, Basis(vectors)))
     }
 
-    // Compute the exterior product between two blades.
-    /// - `eᵢ ∧ eᵢ = 0`
-    /// - `eᵢ ∧ eⱼ = eᵢⱼ` ⇔ `i ≠ j`
-    ///- `eᵢ ∧ eⱼ = -eⱼeᵢ`
-    pub fn exterior(&self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
+    /// Exterior product
+    pub fn exterior(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         let (sign, product) = self.geometric(rhs, metric)?;
         if self.grade() + rhs.grade() == product.grade() {
             Some((sign, product))
@@ -118,17 +107,16 @@ impl Shape {
         }
     }
 
-    // Compute the regressive product between two blades using the identity
-    /// `A ∨ B = J(J(A) ∧ J(B))`
-    pub fn regressive(&self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
+    /// Regressive product
+    pub fn regressive(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         self.dual()
             .exterior(&rhs.dual(), metric)
             .map(|(sign, product)| (sign, product.dual()))
     }
 
     /// Contraction of `self` onto `rhs`.
-    /// Intuitively, this returns the sub-blade of `rhs` which is prependicular to `self.
-    pub fn left_contraction(&self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
+    /// Intuitively, this returns the sub-basis of `rhs` which is prependicular to `self`.
+    pub fn left_contraction(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         let (sign, product) = self.geometric(rhs, metric)?;
         if rhs.grade().checked_sub(self.grade()) == Some(product.grade()) {
             Some((sign, product))
@@ -138,16 +126,15 @@ impl Shape {
     }
 
     /// Contraction of `self` by `rhs`.
-    /// `A << B = (B~ >> A~)~`
-    /// Intuitively, this returns the sub-blade of `self` which is prependicular to `rhs.
-    pub fn right_contraction(&self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
+    /// Intuitively, this returns the sub-basis of `self` which is prependicular to `rhs`.
+    pub fn right_contraction(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         let (sign, product) = rhs.left_contraction(self, metric)?;
         let sign = sign * rhs.reverse() * self.reverse() * product.reverse();
         Some((sign, product))
     }
 
-    /// Bi-directional contraction.
-    pub fn inner(&self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
+    /// Inner product
+    pub fn inner(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         let (sign, product) = self.geometric(rhs, metric)?;
         if rhs.grade().abs_diff(self.grade()) == product.grade() {
             Some((sign, product))
@@ -156,10 +143,8 @@ impl Shape {
         }
     }
 
-    /// Scalar product, producing non-zero scalars only when grades match.
-    /// In that case, the result can be interpreted as a metric between blades:
-    /// `A~ * A` can be used as the squared norm of `A`.
-    pub fn scalar(&self, rhs: &Shape, metric: &Metric) -> Option<(Sign, Shape)> {
+    /// Scalar product
+    pub fn scalar(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         let (sign, product) = self.geometric(rhs, metric)?;
         if product.grade() == 0 {
             Some((sign, product))
@@ -168,8 +153,6 @@ impl Shape {
         }
     }
 
-    /// The *grade* (sometime also called *step*) of this blade, equating to the number of distinct factors.
-    /// Returns [None] if this shape is vanishing.
     pub fn grade(&self) -> usize {
         self.0
             .iter()
@@ -181,7 +164,7 @@ impl Shape {
     }
 }
 
-impl std::fmt::Display for Shape {
+impl std::fmt::Display for Basis {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.anti_grade() == 0 {
             write!(f, "i")?;

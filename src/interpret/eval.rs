@@ -1,8 +1,8 @@
 use std::f64::consts::{E, PI, TAU};
 
-use crate::algebra::{blade::Blade, metric::Metric, shape::Shape, sign::Sign};
+use crate::algebra::{basis::Basis, blade::Blade, metric::Metric, sign::Sign};
 
-use super::expr::{Basis, Binary, Expr, Unary};
+use super::expr::{self, Binary, Expr, Unary};
 
 pub struct Undefined(pub String);
 
@@ -11,8 +11,8 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
 
     match expr {
         Expr::Blade(factor, bases) => match bases {
-            Basis::Pseudoscalar => Ok(Blade(factor, Shape::pseudoscalar(metric.dimension()))),
-            Basis::Vectors(vectors) => {
+            expr::Basis::Pseudoscalar => Ok(Blade(factor, Basis::pseudoscalar(metric.dimension()))),
+            expr::Basis::Vectors(vectors) => {
                 for &vector in &vectors {
                     if vector >= metric.dimension() {
                         return Err(Undefined(format!(
@@ -21,22 +21,22 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                         )));
                     }
                 }
-                if let Some((sign, shape)) = vectors
+                if let Some((sign, basis)) = vectors
                     .into_iter()
                     .map(|vector| {
-                        let mut shape = Shape::one(metric.dimension());
-                        shape.0[vector] = true;
-                        shape
+                        let mut basis = Basis::one(metric.dimension());
+                        basis.0[vector] = true;
+                        basis
                     })
                     .try_fold(
-                        (Sign::Pos, Shape::one(metric.dimension())),
-                        |(sign_a, a), b| -> Option<(Sign, Shape)> {
+                        (Sign::Pos, Basis::one(metric.dimension())),
+                        |(sign_a, a), b| -> Option<(Sign, Basis)> {
                             let (sign, product) = a.geometric(&b, metric)?;
                             Some((sign * sign_a, product))
                         },
                     )
                 {
-                    Ok(Blade(sign * factor, shape))
+                    Ok(Blade(sign * factor, basis))
                 } else {
                     Ok(Blade::null(metric.dimension()))
                 }

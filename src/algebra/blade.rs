@@ -1,71 +1,71 @@
-use super::{metric::Metric, shape::Shape};
+use super::{basis::Basis, metric::Metric};
 
-pub struct Blade(pub f64, pub Shape);
+pub struct Blade(pub f64, pub Basis);
 
 impl Blade {
     pub fn null(dimension: usize) -> Blade {
-        Blade(0.0, Shape(vec![false; dimension]))
+        Blade(0.0, Basis(vec![false; dimension]))
     }
 
     pub fn one(dimension: usize) -> Blade {
-        Blade(1.0, Shape(vec![false; dimension]))
+        Blade(1.0, Basis(vec![false; dimension]))
     }
 
     pub fn from(scalar: f64, dimension: usize) -> Blade {
-        Blade(scalar, Shape(vec![false; dimension]))
+        Blade(scalar, Basis(vec![false; dimension]))
     }
 
     pub fn geometric(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, shape)) = self.1.geometric(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, shape)
+        if let Some((sign, basis)) = self.1.geometric(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, basis)
         } else {
             Blade::null(self.1.dimension())
         }
     }
 
     pub fn exterior(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, shape)) = self.1.exterior(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, shape)
+        if let Some((sign, basis)) = self.1.exterior(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, basis)
         } else {
             Blade::null(self.1.dimension())
         }
     }
 
     pub fn regressive(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, shape)) = self.1.regressive(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, shape)
+        if let Some((sign, basis)) = self.1.regressive(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, basis)
         } else {
             Blade::null(self.1.dimension())
         }
     }
 
     pub fn left_contraction(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, shape)) = self.1.left_contraction(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, shape)
+        if let Some((sign, basis)) = self.1.left_contraction(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, basis)
         } else {
             Blade::null(self.1.dimension())
         }
     }
 
     pub fn right_contraction(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, shape)) = self.1.right_contraction(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, shape)
+        if let Some((sign, basis)) = self.1.right_contraction(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, basis)
         } else {
             Blade::null(self.1.dimension())
         }
     }
 
     pub fn inner(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, shape)) = self.1.inner(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, shape)
+        if let Some((sign, basis)) = self.1.inner(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, basis)
         } else {
             Blade::null(self.1.dimension())
         }
     }
 
     pub fn scalar(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, shape)) = self.1.scalar(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, shape)
+        if let Some((sign, basis)) = self.1.scalar(&rhs.1, metric) {
+            Blade(sign * self.0 * rhs.0, basis)
         } else {
             Blade::null(self.1.dimension())
         }
