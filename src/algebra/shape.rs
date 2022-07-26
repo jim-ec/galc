@@ -3,8 +3,10 @@ use super::{
     sign::Sign,
 };
 
-/// Encodes a factorization of a blade:
-/// `A = B eᵢ` ⇔ `A[i]`
+/// Blades are geometric products of one or more basis vectors.
+/// A shape encodes which basis vectors are part of such a product, using the invariant:
+/// `shape.0[i]` ⟷ The `i`th basis vector is a factor.
+/// Thus shapes are oblivious to factor permutations.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Shape(pub Vec<bool>);
 
@@ -48,7 +50,7 @@ impl Shape {
 
     /// Poincaré duality operator
     pub fn dual(&self) -> Shape {
-        Shape(self.0.iter().map(|factor| !factor).collect())
+        Shape(self.0.iter().map(|vector| !vector).collect())
     }
 
     /// Compute the geometric product between two blades.
@@ -66,7 +68,7 @@ impl Shape {
             metric.dimension(),
             "To compute the geometric product, the blade and metric must match in dimension"
         );
-        let mut product = vec![false; self.dimension()];
+        let mut vectors = vec![false; self.dimension()];
         let mut sign = Sign::Pos;
 
         for i in 0..self.dimension() {
@@ -79,7 +81,7 @@ impl Shape {
                     }
                 }
             }
-            product[i] = match (self.0[i], rhs.0[i]) {
+            vectors[i] = match (self.0[i], rhs.0[i]) {
                 (true, false) | (false, true) => true,
                 (true, true) => match metric.0[i] {
                     Square::Pos => {
@@ -100,7 +102,7 @@ impl Shape {
             }
         }
 
-        Some((sign, Shape(product)))
+        Some((sign, Shape(vectors)))
     }
 
     // Compute the exterior product between two blades.
@@ -171,7 +173,7 @@ impl Shape {
     pub fn grade(&self) -> usize {
         self.0
             .iter()
-            .fold(0, |grade, factor| if *factor { grade + 1 } else { grade })
+            .fold(0, |grade, &vector| if vector { grade + 1 } else { grade })
     }
 
     pub fn anti_grade(&self) -> usize {
@@ -185,8 +187,8 @@ impl std::fmt::Display for Shape {
             write!(f, "i")?;
         } else {
             write!(f, "e")?;
-            for (i, factor) in self.0.iter().enumerate() {
-                if *factor {
+            for (i, vector) in self.0.iter().enumerate() {
+                if *vector {
                     write!(f, "{i}")?;
                 }
             }
