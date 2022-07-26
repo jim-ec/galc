@@ -103,10 +103,10 @@ fn atom_parser<'a>(
     expr: impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a,
 ) -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
     choice((
-        blade_parser(),
-        expr.clone().delimited_by(just('('), just(')')),
-        application_parser(expr),
+        application_parser(expr.clone()),
         variable_parser(),
+        blade_parser(),
+        expr.delimited_by(just('('), just(')')),
     ))
     .boxed()
 }
@@ -118,6 +118,7 @@ fn unary_parser<'a>(
         '-' => Unary::Neg,
         '!' => Unary::Dual,
         '~' => Unary::Reverse,
+        '$' => Unary::Inverse,
     }
     .padded()
     .repeated()
@@ -147,6 +148,7 @@ fn binary_parser<'a>(
                 just("<<").to(Binary::RightContraction),
                 just("<>").to(Binary::Inner),
                 just("|").to(Binary::Scalar),
+                just("/").to(Binary::Divide),
             ))
             .padded()
             .then(binary)

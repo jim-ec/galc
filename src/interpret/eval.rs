@@ -53,6 +53,9 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                 Binary::RightContraction => lhs.right_contraction(&rhs, metric),
                 Binary::Inner => lhs.inner(&rhs, metric),
                 Binary::Scalar => lhs.scalar(&rhs, metric),
+                Binary::Divide => lhs
+                    .divide(&rhs, metric)
+                    .ok_or(Undefined(format!("Division by {rhs} not defined")))?,
             })
         }
         Expr::Unary(unary, x) => {
@@ -63,7 +66,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                 Unary::Reverse => Ok(x.reverse()),
                 Unary::Inverse => x
                     .inverse(metric)
-                    .ok_or(Undefined(format!("Inverse of 0-blade"))),
+                    .ok_or(Undefined(format!("Inverse not defined for {x}"))),
                 Unary::Involute => Ok(x.involute()),
                 Unary::Conjugate => Ok(x.conjugate()),
             }

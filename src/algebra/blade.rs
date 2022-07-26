@@ -103,6 +103,12 @@ impl Blade {
         self.norm_squared(metric).sqrt()
     }
 
+    /// The inverse can be defined as `~A / (~A * A)`.
+    /// It is thus very similar to the reversion and always has the sign,
+    /// since the denominator is always a non-negative scalar.
+    /// The difference is that `A * ~A = 1` only holds if `A` is normalized.
+    /// On the other hand, `A * inverse(A) = 1` always holds, unless `A` vanishes.
+    /// `inverse` thus behaves as a true inverse of the geometric product.
     pub fn inverse(&self, metric: &Metric) -> Option<Blade> {
         let n = self.scalar(&self.reverse(), metric).0;
         if n != 0.0 {
@@ -112,6 +118,11 @@ impl Blade {
         } else {
             None
         }
+    }
+
+    pub fn divide(&self, rhs: &Blade, metric: &Metric) -> Option<Blade> {
+        let rhs = rhs.inverse(metric)?;
+        Some(self.geometric(&rhs, metric))
     }
 }
 

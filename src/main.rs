@@ -15,7 +15,7 @@ mod test;
 fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos, Square::Pos]);
 
-    let string = "sin(pi)";
+    let string = "2e12 * $2e12";
 
     let expr = if let Some(expr) = parse(string) {
         expr

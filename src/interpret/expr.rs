@@ -15,6 +15,7 @@ pub enum Binary {
     RightContraction,
     Inner,
     Scalar,
+    Divide,
 }
 
 #[derive(Clone, Copy)]
