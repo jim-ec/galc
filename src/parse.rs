@@ -107,8 +107,9 @@ fn atom_parser<'a>(
         variable_parser(),
         blade_parser(),
         expr.clone().delimited_by(just('('), just(')')),
-        expr.clone().delimited_by(just('|'), just('|'))
-        .map(|expr| Expr::Norm(Box::new(expr))),
+        expr.clone()
+            .delimited_by(just('|'), just('|'))
+            .map(|expr| Expr::Norm(Box::new(expr))),
     ))
     .boxed()
 }
@@ -136,14 +137,9 @@ fn binary_parser<'a>(
 
     let binary: BoxedParser<char, Expr, Simple<char>> = binary
         .clone()
-        .then(just('*').padded().ignore_then(binary).repeated())
-        .foldl(|lhs, rhs| Expr::Binary(Binary::Geometric, Box::new(lhs), Box::new(rhs)))
-        .boxed();
-
-    let binary: BoxedParser<char, Expr, Simple<char>> = binary
-        .clone()
         .then(
             choice((
+                just("*").to(Binary::Geometric),
                 just("^").to(Binary::Exterior),
                 just("&").to(Binary::Regressive),
                 just(">>").to(Binary::LeftContraction),

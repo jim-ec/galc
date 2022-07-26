@@ -15,7 +15,7 @@ mod test;
 fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos, Square::Pos]);
 
-    let string = "|-4e12|";
+    let string = "1 / 1e12 * 1e12";
 
     let expr = if let Some(expr) = parse(string) {
         expr
