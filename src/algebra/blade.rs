@@ -135,6 +135,12 @@ impl std::fmt::Display for Blade {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let r = self.1.grade();
         let s = if self.0 != 0.0 { self.0 } else { self.0.abs() };
+
+        // Print 0 if near enough
+        let digits = 10;
+        let epsilon = 0.1_f64.powi(digits);
+        let s = if s.abs() < epsilon { 0.0 } else { s };
+
         if r == 0 || s == 0.0 {
             write!(f, "{}", s)
         } else if r > 0 && s == 1.0 {
