@@ -121,7 +121,6 @@ fn unary_parser<'a>(
         '-' => Unary::Neg,
         '!' => Unary::Dual,
         '~' => Unary::Reverse,
-        '$' => Unary::Inverse,
     }
     .padded()
     .repeated()
