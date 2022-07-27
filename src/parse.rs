@@ -103,9 +103,9 @@ fn atom_parser<'a>(
     expr: impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a,
 ) -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
     choice((
+        blade_parser(),
         application_parser(expr.clone()),
         variable_parser(),
-        blade_parser(),
         expr.clone().delimited_by(just('('), just(')')),
         expr.clone()
             .delimited_by(just('|'), just('|'))
