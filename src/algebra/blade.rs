@@ -1,5 +1,6 @@
 use super::{basis::Basis, metric::Metric};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Blade(pub f64, pub Basis);
 
 impl Blade {
@@ -123,6 +124,27 @@ impl Blade {
     pub fn divide(&self, rhs: &Blade, metric: &Metric) -> Option<Blade> {
         let rhs = rhs.inverse(metric)?;
         Some(self.geometric(&rhs, metric))
+    }
+
+    pub fn exponentiate(&self, rhs: &Blade, metric: &Metric) -> Option<Blade> {
+        println!("Warning: Exponent must be a scalar integer");
+        if rhs.grade() != 0 {
+            return None;
+        }
+        let rhs = rhs.0.round() as isize;
+
+        let mut exponentiation = Blade::one(metric.dimension());
+        let factor = if rhs > 0 {
+            self.clone()
+        } else {
+            self.inverse(metric)?
+        };
+
+        for _ in 0..rhs.abs() {
+            exponentiation = exponentiation.geometric(&factor, metric);
+        }
+
+        Some(exponentiation)
     }
 }
 

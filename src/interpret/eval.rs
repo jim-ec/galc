@@ -56,6 +56,9 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                 Binary::Divide => lhs
                     .divide(&rhs, metric)
                     .ok_or(Undefined(format!("Division by {rhs} not defined")))?,
+                Binary::Exponentiation => lhs.exponentiate(&rhs, metric).ok_or(Undefined(
+                    format!("Exponentiation of {lhs} to {rhs} not defined"),
+                ))?,
             })
         }
         Expr::Unary(unary, x) => {

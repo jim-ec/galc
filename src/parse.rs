@@ -138,6 +138,17 @@ fn binary_parser<'a>(
     let binary: BoxedParser<char, Expr, Simple<char>> = binary
         .clone()
         .then(
+            choice((just("**").to(Binary::Exponentiation),))
+                .padded()
+                .then(binary)
+                .repeated(),
+        )
+        .foldl(|lhs, (op, rhs)| Expr::Binary(op, Box::new(lhs), Box::new(rhs)))
+        .boxed();
+
+    let binary: BoxedParser<char, Expr, Simple<char>> = binary
+        .clone()
+        .then(
             choice((
                 just("*").to(Binary::Geometric),
                 just("^").to(Binary::Exterior),
