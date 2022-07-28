@@ -164,7 +164,9 @@ fn binary_parser<'a>(
             choice((
                 just("*").to(Binary::Geometric),
                 just("^").to(Binary::Exterior),
+                just("/\\").to(Binary::Exterior),
                 just("&").to(Binary::Regressive),
+                just("\\/").to(Binary::Regressive),
                 just(">>").to(Binary::LeftContraction),
                 just("<<").to(Binary::RightContraction),
                 just("<>").to(Binary::Inner),
