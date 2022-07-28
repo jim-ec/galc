@@ -1,5 +1,6 @@
 use chumsky::{error::Simple, prelude::*};
 use itertools::Itertools;
+use unicode_ident;
 
 use crate::interpret::expr::{Basis, Binary, Expr, Unary};
 
@@ -82,8 +83,22 @@ fn blade_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone +
     .boxed()
 }
 
+/// Parse identifiers according to [Unicode Standard Annex #31](https://www.unicode.org/reports/tr31/).
+/// Some valid identifiers are `a`, `b_2`, `τ`, `𝛼`.
+/// Invalid identifiers include `0`, `_a`, `x₁`.
+fn ident_parser<'a>() -> impl Parser<char, String, Error = Simple<char>> + Clone + 'a {
+    filter(|&c| unicode_ident::is_xid_start(c))
+        .map(|c| String::from(c))
+        .then(filter(|&c| unicode_ident::is_xid_continue(c)).repeated())
+        .foldl(|mut s, c| {
+            s.push(c);
+            s
+        })
+        .boxed()
+}
+
 fn variable_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
-    text::ident().map(Expr::Variable)
+    ident_parser().map(Expr::Variable)
 }
 
 fn application_parser<'a>(

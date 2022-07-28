@@ -161,10 +161,10 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
             }
         }
         Expr::Variable(name) => match name.as_str() {
-            "undefined" => Err(Undefined(format!("Undefined computation"))),
+            "undefined" | "⊥" => Err(Undefined(format!("Undefined computation"))),
             "e" => Ok(new_scalar(E)),
-            "tau" => Ok(new_scalar(TAU)),
-            "pi" => Ok(new_scalar(PI)),
+            "tau" | "τ" => Ok(new_scalar(TAU)),
+            "pi" | "π" => Ok(new_scalar(PI)),
             _ => Err(Undefined(format!("Unknown variable {name}"))),
         },
     }
