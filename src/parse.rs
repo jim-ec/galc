@@ -96,7 +96,9 @@ fn ident_parser<'a>() -> impl Parser<char, String, Error = Simple<char>> + Clone
 }
 
 fn variable_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
-    ident_parser().map(Expr::Variable)
+    ident_parser()
+        .or(just("⊥").or(just("_|_")).map(|c| c.to_string()))
+        .map(Expr::Variable)
 }
 
 fn application_parser<'a>(
