@@ -19,7 +19,6 @@ pub fn repl() {
         if input.is_empty() {
             continue;
         } else if input == ":q" {
-            println!("Quit");
             return;
         }
 
@@ -33,7 +32,10 @@ pub fn repl() {
 
         match eval::eval(expr, &metric) {
             Ok(result) => println!("  = {result}"),
-            Err(eval::Undefined(cause)) => println!("{}", cause),
+            Err(eval::Undefined(cause)) => {
+                println!("  {}", cause);
+                println!("  = ⊥");
+            }
         };
 
         println!();

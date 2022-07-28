@@ -4,8 +4,6 @@ use unicode_ident;
 
 use crate::interpret::expr::{Basis, Binary, Expr, Unary};
 
-type ExprParser<'a, T> = BoxedParser<'a, char, T, Simple<char>>;
-
 pub fn parse(string: &str) -> Option<Expr> {
     let parser = expr_parser();
     match parser.parse(string) {
