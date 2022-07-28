@@ -126,14 +126,13 @@ impl Blade {
         Some(self.geometric(&rhs, metric))
     }
 
-    pub fn exponentiate(&self, rhs: &Blade, metric: &Metric) -> Option<Blade> {
-        println!("Warning: Exponent must be a scalar integer");
+    pub fn power(&self, rhs: &Blade, metric: &Metric) -> Option<Blade> {
         if rhs.grade() != 0 {
             return None;
         }
         let rhs = rhs.0.round() as isize;
 
-        let mut exponentiation = Blade::one(metric.dimension());
+        let mut power = Blade::one(metric.dimension());
         let factor = if rhs > 0 {
             self.clone()
         } else {
@@ -141,10 +140,10 @@ impl Blade {
         };
 
         for _ in 0..rhs.abs() {
-            exponentiation = exponentiation.geometric(&factor, metric);
+            power = power.geometric(&factor, metric);
         }
 
-        Some(exponentiation)
+        Some(power)
     }
 }
 

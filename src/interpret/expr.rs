@@ -17,7 +17,7 @@ pub enum Binary {
     Inner,
     Scalar,
     Divide,
-    Exponentiation,
+    Power,
 }
 
 #[derive(Clone, Copy)]

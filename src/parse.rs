@@ -152,7 +152,7 @@ fn binary_parser<'a>(
     let binary: BoxedParser<char, Expr, Simple<char>> = binary
         .clone()
         .then(
-            choice((just("**").to(Binary::Exponentiation),))
+            choice((just("**").to(Binary::Power),))
                 .padded()
                 .then(binary)
                 .repeated(),
