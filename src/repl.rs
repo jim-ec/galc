@@ -21,28 +21,42 @@ pub fn repl() {
         } else if input.starts_with(":") {
             match &input[1..] {
                 "q" => return,
+                "h" => {
+                    println!(r"Geometric product:  a b");
+                    println!(r"Exteriour product:  a /\ b");
+                    println!(r"Regressive product: a \/ b");
+                    println!(r"Left contraction:   a >> b");
+                    println!(r"Right contraction:  a << b");
+                    println!(r"Inner product:      a | b");
+                    println!(r"Scalar product:     a * b");
+                    println!(r"Division:           a / b");
+                    println!(r"Power:              a ^ b");
+                    println!(r"Negation:           -a");
+                    println!(r"Dualization:        !a");
+                    println!(r"Reversal:           ~a");
+                    println!(r"Norm:               [a]");
+                }
                 _ => {
                     println!("Unknown command");
-                    continue;
                 }
             }
+        } else {
+            let expr = match parse::parse(input) {
+                Some(expr) => expr,
+                None => {
+                    println!();
+                    continue;
+                }
+            };
+
+            match eval::eval(expr, &metric) {
+                Ok(result) => println!("  = {result}"),
+                Err(eval::Undefined(cause)) => {
+                    println!("  {}", cause);
+                    println!("  = ⊥");
+                }
+            };
         }
-
-        let expr = match parse::parse(input) {
-            Some(expr) => expr,
-            None => {
-                println!();
-                continue;
-            }
-        };
-
-        match eval::eval(expr, &metric) {
-            Ok(result) => println!("  = {result}"),
-            Err(eval::Undefined(cause)) => {
-                println!("  {}", cause);
-                println!("  = ⊥");
-            }
-        };
 
         println!();
     }
