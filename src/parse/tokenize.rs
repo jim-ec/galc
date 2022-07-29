@@ -1,28 +1,20 @@
 use chumsky::prelude::*;
 
-use crate::interpret::expr::Basis;
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Token {
     Whitespace,
     Number(String),
-    Basis(Basis),
+    Basis(Vec<usize>),
     Identifier(String),
     ParenOpen,
     ParenClose,
     BracketOpen,
     BracketClose,
-    Operator,
+    Operator(String),
 }
 
-pub fn tokenize(input: &str, errors: &mut Vec<Simple<char>>) -> Option<Vec<Token>> {
-    match tokenizer().parse(input) {
-        Ok(tokens) => Some(tokens),
-        Err(mut tokenizer_errors) => {
-            errors.append(&mut tokenizer_errors);
-            None
-        }
-    }
+pub fn tokenize(input: &str) -> Result<Vec<Token>, Vec<Simple<char>>> {
+    tokenizer().parse(input)
 }
 
 fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clone + 'a {
@@ -32,15 +24,15 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
         .to(Token::Whitespace)
         .boxed();
 
-    let operator: BoxedParser<char, Token, Simple<char>> = one_of(r"+-*/\&<>%|")
+    let operator: BoxedParser<char, Token, Simple<char>> = one_of(r"+-*/\<>|^!~")
         .repeated()
         .at_least(1)
-        .to(Token::Operator)
+        .map(|operators| Token::Operator(String::from_iter(operators.into_iter())))
         .boxed();
 
     let number: BoxedParser<char, Token, Simple<char>> = text::int(10)
         .then(just('.').ignore_then(text::int(10)).or_not())
-        .map(|(mut int, frac)| {
+        .map(|(int, frac)| {
             Token::Number(match frac {
                 Some(frac) => format!("{int}.{frac}"),
                 None => int,
@@ -48,18 +40,15 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
         })
         .boxed();
 
-    let basis: BoxedParser<char, Token, Simple<char>> = just('i')
-        .to(Basis::Pseudoscalar)
-        .or(just('e')
-            .ignore_then(
-                filter_map(|span, c: char| match c.to_digit(10) {
-                    Some(x) => Ok(x as usize),
-                    None => Err(Simple::custom(span, format!("'{}' is not a digit", c))),
-                })
-                .repeated()
-                .at_least(1),
-            )
-            .map(Basis::Vectors))
+    let basis: BoxedParser<char, Token, Simple<char>> = just('e')
+        .ignore_then(
+            filter_map(|span, c: char| match c.to_digit(10) {
+                Some(x) => Ok(x as usize),
+                None => Err(Simple::custom(span, format!("'{}' is not a digit", c))),
+            })
+            .repeated()
+            .at_least(1),
+        )
         .map(Token::Basis)
         .boxed();
 

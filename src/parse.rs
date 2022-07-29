@@ -2,187 +2,133 @@ mod tokenize;
 
 use chumsky::prelude::*;
 use itertools::Itertools;
-use unicode_ident;
 
-use crate::interpret::expr::{Basis, Binary, Expr, Unary};
+use crate::interpret::expr::{Binary, Expr, Unary};
+
+use self::tokenize::Token;
 
 pub fn parse(string: &str) -> Option<Expr> {
-    let mut errors = Vec::new();
-    if let Some(tokens) = tokenize::tokenize(string, &mut errors) {
-        let parser = expr_parser();
-        match parser.parse(string) {
-            Ok(expr) => return Some(expr),
-            Err(mut parser_errors) => errors.append(&mut parser_errors),
+    match tokenize::tokenize(string) {
+        Ok(tokens) => match expr_parser().parse(tokens) {
+            Ok(expr) => Some(expr),
+            Err(errors) => {
+                for error in errors {
+                    println!(
+                        "Parsing error, expected one of: {}",
+                        error
+                            .expected()
+                            .flatten()
+                            .map(|token| format!("{:?}", token))
+                            .join(", ")
+                    );
+                    if let Some(found) = error.found() {
+                        println!("But got: {:?}", found)
+                    }
+                }
+                None
+            }
+        },
+        Err(errors) => {
+            for error in errors {
+                println!(
+                    "Parsing error, expected one of: {}",
+                    error.expected().flatten().join(", ")
+                );
+                if let Some(found) = error.found() {
+                    println!("But got: {found}")
+                }
+            }
+            None
         }
     }
-
-    for error in errors {
-        println!(
-            "Parsing error, expected one of: {}",
-            error.expected().flatten().join(", ")
-        );
-        if let Some(found) = error.found() {
-            println!("But got: {found}")
-        }
-    }
-    None
 }
 
-fn expr_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
+fn expr_parser<'a>() -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
     recursive(|expr| binary_parser(expr.clone()))
+        .padded_by(just(Token::Whitespace).repeated())
         .then_ignore(end())
         .boxed()
 }
 
-fn number_parser<'a>() -> impl Parser<char, f64, Error = Simple<char>> + Clone + 'a {
-    text::int(10)
-        .then(just('.').ignore_then(text::int(10)).or_not())
-        .map(|(mut number, frac)| {
-            if let Some(frac) = frac {
-                number.push_str(".");
-                number += &frac;
-            }
-            // TODO: Throw parsing error instead of panicking.
-            let number: f64 = number.parse().unwrap();
-            number
-        })
-        .padded()
-        .boxed()
-}
-
-fn basis_parser<'a>() -> impl Parser<char, Basis, Error = Simple<char>> + Clone + 'a {
-    just('i')
-        .to(Basis::Pseudoscalar)
-        .or(just('e')
-            .ignore_then(
-                select! {
-                    '0' => 0,
-                    '1' => 1,
-                    '2' => 2,
-                    '3' => 3,
-                    '4' => 4,
-                    '5' => 5,
-                    '6' => 6,
-                    '7' => 7,
-                    '8' => 8,
-                    '9' => 9,
-                }
-                .repeated()
-                .at_least(1),
-            )
-            .map(Basis::Vectors))
-        .padded()
-        .boxed()
-}
-
-fn blade_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
-    choice((
-        number_parser()
-            .then(basis_parser())
-            .map(|(number, basis)| Expr::Blade(number, basis)),
-        basis_parser().map(|basis| Expr::Blade(1.0, basis)),
-        number_parser().map(|number| Expr::Blade(number, Basis::Vectors(vec![]))),
-    ))
-    .boxed()
-}
-
-/// Parse identifiers according to [Unicode Standard Annex #31](https://www.unicode.org/reports/tr31/).
-/// Some valid identifiers are `a`, `b_2`, `τ`, `𝛼`.
-/// Invalid identifiers include `0`, `_a`, `x₁`.
-fn ident_parser<'a>() -> impl Parser<char, String, Error = Simple<char>> + Clone + 'a {
-    filter(|&c| unicode_ident::is_xid_start(c))
-        .map(|c| String::from(c))
-        .then(filter(|&c| unicode_ident::is_xid_continue(c)).repeated())
-        .foldl(|mut s, c| {
-            s.push(c);
-            s
-        })
-        .boxed()
-}
-
-fn variable_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
-    ident_parser()
-        .or(just("⊥").or(just("_|_")).map(|c| c.to_string()))
-        .map(Expr::Variable)
-}
-
-fn application_parser<'a>(
-    expr: impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a,
-) -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
-    text::ident()
-        .then(
-            expr.clone()
-                .separated_by(just(','))
-                .delimited_by(just('('), just(')')),
-        )
-        .map(|(name, arguments)| Expr::Application(name, arguments))
-        .boxed()
-}
-
-fn atom_parser<'a>(
-    expr: impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a,
-) -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
-    choice((
-        blade_parser(),
-        application_parser(expr.clone()),
-        variable_parser(),
-        expr.clone().delimited_by(just('('), just(')')),
-        expr.clone()
-            .delimited_by(just('|'), just('|'))
-            .map(|expr| Expr::Norm(Box::new(expr))),
-    ))
+fn operand_parser<'a>(
+    expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
+) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
+    select! {
+        Token::Number(number) => Expr::Number(number.parse().unwrap()),
+        Token::Basis(basis) => Expr::Basis(basis),
+        Token::Identifier(identifier) if identifier == "i" => Expr::Pseudoscalar,
+        Token::Identifier(identifier) => Expr::Identifier(identifier),
+    }
+    .or(expr
+        .clone()
+        .delimited_by(just(Token::ParenOpen), just(Token::ParenClose)))
+    .or(expr
+        .clone()
+        .delimited_by(just(Token::BracketOpen), just(Token::BracketClose))
+        .map(|expr| Expr::Norm(Box::new(expr))))
     .boxed()
 }
 
 fn unary_parser<'a>(
-    expr: impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a,
-) -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
+    expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
+) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
     select! {
-        '-' => Unary::Neg,
-        '!' => Unary::Dual,
-        '~' => Unary::Reverse,
+        Token::Operator(operator) if operator == "-" => Unary::Neg,
+        Token::Operator(operator) if operator == "!" => Unary::Dual,
+        Token::Operator(operator) if operator == "~" => Unary::Reverse,
     }
-    .padded()
     .repeated()
-    .then(atom_parser(expr))
+    .then(operand_parser(expr))
     .foldr(|op, rhs| Expr::Unary(op, Box::new(rhs)))
     .boxed()
 }
 
 fn binary_parser<'a>(
-    expr: impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a,
-) -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {
+    expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
+) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
     let binary = unary_parser(expr.clone());
 
-    let binary: BoxedParser<char, Expr, Simple<char>> = binary
+    let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
         .clone()
         .then(
-            choice((just("**").to(Binary::Power),))
-                .padded()
+            just(Token::Whitespace)
+                .ignore_then(
+                    select! { Token::Operator(operator) if operator == "^" => Binary::Power },
+                )
+                .then_ignore(just(Token::Whitespace))
                 .then(binary)
                 .repeated(),
         )
         .foldl(|lhs, (op, rhs)| Expr::Binary(op, Box::new(lhs), Box::new(rhs)))
         .boxed();
 
-    let binary: BoxedParser<char, Expr, Simple<char>> = binary
+    let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
         .clone()
         .then(
-            choice((
-                just("*").to(Binary::Geometric),
-                just("^").to(Binary::Exterior),
-                just("/\\").to(Binary::Exterior),
-                just("&").to(Binary::Regressive),
-                just("\\/").to(Binary::Regressive),
-                just(">>").to(Binary::LeftContraction),
-                just("<<").to(Binary::RightContraction),
-                just("<>").to(Binary::Inner),
-                just("%").to(Binary::Scalar),
-                just("/").to(Binary::Divide),
-            ))
-            .padded()
-            .then(binary)
-            .repeated(),
+            just(Token::Whitespace)
+                .or_not()
+                .ignore_then(binary)
+                .repeated(),
+        )
+        .foldl(|lhs, rhs| Expr::Binary(Binary::Geometric, Box::new(lhs), Box::new(rhs)))
+        .boxed();
+
+    let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
+        .clone()
+        .then(
+            just(Token::Whitespace)
+                .ignore_then(select! {
+                    Token::Operator(operator) if operator == r"/\" => Binary::Exterior,
+                    Token::Operator(operator) if operator == r"\/" => Binary::Regressive,
+                    Token::Operator(operator) if operator == r">>" => Binary::LeftContraction,
+                    Token::Operator(operator) if operator == r"<<" => Binary::RightContraction,
+                    Token::Operator(operator) if operator == r"|" => Binary::Inner,
+                    Token::Operator(operator) if operator == r"*" => Binary::Scalar,
+                    Token::Operator(operator) if operator == r"/" => Binary::Divide,
+                })
+                .then_ignore(just(Token::Whitespace))
+                .then(binary)
+                .repeated(),
         )
         .foldl(|lhs, (op, rhs)| Expr::Binary(op, Box::new(lhs), Box::new(rhs)))
         .boxed();

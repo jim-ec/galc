@@ -1,10 +1,11 @@
 pub enum Expr {
-    Blade(f64, Basis),
+    Number(f64),
+    Pseudoscalar,
+    Basis(Vec<usize>),
     Binary(Binary, Box<Expr>, Box<Expr>),
     Unary(Unary, Box<Expr>),
     Norm(Box<Expr>),
-    Application(String, Vec<Expr>),
-    Variable(String),
+    Identifier(String),
 }
 
 #[derive(Clone, Copy)]
@@ -28,10 +29,4 @@ pub enum Unary {
     Inverse,
     Involute,
     Conjugate,
-}
-
-#[derive(Debug, Clone)]
-pub enum Basis {
-    Pseudoscalar,
-    Vectors(Vec<usize>),
 }

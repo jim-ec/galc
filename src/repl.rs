@@ -18,8 +18,14 @@ pub fn repl() {
 
         if input.is_empty() {
             continue;
-        } else if input == ":q" {
-            return;
+        } else if input.starts_with(":") {
+            match &input[1..] {
+                "q" => return,
+                _ => {
+                    println!("Unknown command");
+                    continue;
+                }
+            }
         }
 
         let expr = match parse::parse(input) {
