@@ -22,6 +22,13 @@ pub fn repl() {
             match &input[1..] {
                 "q" => return,
                 "h" => {
+                    println!("Commands");
+                    println!("--------");
+                    println!("Quit   :q");
+                    println!("Help   :h");
+                    println!();
+                    println!("Expressions");
+                    println!("-----------");
                     println!(r"Geometric product:  a b");
                     println!(r"Exteriour product:  a /\ b");
                     println!(r"Regressive product: a \/ b");
@@ -37,7 +44,7 @@ pub fn repl() {
                     println!(r"Norm:               [a]");
                 }
                 _ => {
-                    println!("Unknown command");
+                    println!("Unknown command. Use :h to see a help screen.");
                 }
             }
         } else {
