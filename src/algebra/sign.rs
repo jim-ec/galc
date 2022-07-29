@@ -1,5 +1,3 @@
-use super::blade::Blade;
-
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Sign {
     Pos,
@@ -34,17 +32,6 @@ impl std::ops::Mul<f64> for Sign {
     type Output = f64;
 
     fn mul(self, rhs: f64) -> Self::Output {
-        match self {
-            Sign::Pos => rhs,
-            Sign::Neg => -rhs,
-        }
-    }
-}
-
-impl std::ops::Mul<Blade> for Sign {
-    type Output = Blade;
-
-    fn mul(self, rhs: Blade) -> Self::Output {
         match self {
             Sign::Pos => rhs,
             Sign::Neg => -rhs,

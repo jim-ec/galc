@@ -36,7 +36,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                     },
                 )
             {
-                Ok(sign * Blade::one(basis.dimension()))
+                Ok(Blade(sign * 1.0, basis))
             } else {
                 Ok(Blade::null(metric.dimension()))
             }
