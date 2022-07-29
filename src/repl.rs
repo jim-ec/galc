@@ -4,7 +4,7 @@ use crate::{algebra::metric, interpret::eval, parse};
 
 pub fn repl() {
     let metric = metric::Metric(vec![
-        metric::Square::Pos,
+        metric::Square::Zero,
         metric::Square::Pos,
         metric::Square::Pos,
     ]);
