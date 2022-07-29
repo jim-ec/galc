@@ -1,26 +1,31 @@
-use chumsky::{error::Simple, prelude::*};
+mod tokenize;
+
+use chumsky::prelude::*;
 use itertools::Itertools;
 use unicode_ident;
 
 use crate::interpret::expr::{Basis, Binary, Expr, Unary};
 
 pub fn parse(string: &str) -> Option<Expr> {
-    let parser = expr_parser();
-    match parser.parse(string) {
-        Ok(expr) => Some(expr),
-        Err(errors) => {
-            for error in errors {
-                println!(
-                    "Parsing error, expected one of: {}",
-                    error.expected().flatten().join(", ")
-                );
-                if let Some(found) = error.found() {
-                    println!("But got: {found}")
-                }
-            }
-            None
+    let mut errors = Vec::new();
+    if let Some(tokens) = tokenize::tokenize(string, &mut errors) {
+        let parser = expr_parser();
+        match parser.parse(string) {
+            Ok(expr) => return Some(expr),
+            Err(mut parser_errors) => errors.append(&mut parser_errors),
         }
     }
+
+    for error in errors {
+        println!(
+            "Parsing error, expected one of: {}",
+            error.expected().flatten().join(", ")
+        );
+        if let Some(found) = error.found() {
+            println!("But got: {found}")
+        }
+    }
+    None
 }
 
 fn expr_parser<'a>() -> impl Parser<char, Expr, Error = Simple<char>> + Clone + 'a {

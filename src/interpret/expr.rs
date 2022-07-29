@@ -30,7 +30,7 @@ pub enum Unary {
     Conjugate,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Basis {
     Pseudoscalar,
     Vectors(Vec<usize>),
