@@ -10,7 +10,17 @@ pub enum Token {
     ParenClose,
     BracketOpen,
     BracketClose,
-    Operator(String),
+    Subtraction,
+    Dual,
+    Reverse,
+    ExteriorProduct,
+    RegressiveProduct,
+    LeftContraction,
+    RightContraction,
+    InnerProduct,
+    ScalarProduct,
+    Division,
+    Power,
 }
 
 pub fn tokenize(input: &str) -> Result<Vec<Token>, Vec<Simple<char>>> {
@@ -24,11 +34,20 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
         .to(Token::Whitespace)
         .boxed();
 
-    let operator: BoxedParser<char, Token, Simple<char>> = one_of(r"+-*/\<>|^!~")
-        .repeated()
-        .at_least(1)
-        .map(|operators| Token::Operator(String::from_iter(operators.into_iter())))
-        .boxed();
+    let operator: BoxedParser<char, Token, Simple<char>> = choice((
+        just(r"-").to(Token::Subtraction),
+        just(r"!").to(Token::Dual),
+        just(r"~").to(Token::Reverse),
+        just(r"/\").to(Token::ExteriorProduct),
+        just(r"\/").to(Token::RegressiveProduct),
+        just(r">>").to(Token::LeftContraction),
+        just(r"<<").to(Token::RightContraction),
+        just(r"|").to(Token::InnerProduct),
+        just(r"*").to(Token::ScalarProduct),
+        just(r"/").to(Token::Division),
+        just(r"^").to(Token::Power),
+    ))
+    .boxed();
 
     let number: BoxedParser<char, Token, Simple<char>> = text::int(10)
         .then(just('.').ignore_then(text::int(10)).or_not())

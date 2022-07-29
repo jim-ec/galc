@@ -73,9 +73,9 @@ fn unary_parser<'a>(
     expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
 ) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
     select! {
-        Token::Operator(operator) if operator == "-" => Unary::Neg,
-        Token::Operator(operator) if operator == "!" => Unary::Dual,
-        Token::Operator(operator) if operator == "~" => Unary::Reverse,
+        Token::Subtraction => Unary::Neg,
+        Token::Dual => Unary::Dual,
+        Token::Reverse => Unary::Reverse,
     }
     .repeated()
     .then(operand_parser(expr))
@@ -92,9 +92,7 @@ fn binary_parser<'a>(
         .clone()
         .then(
             just(Token::Whitespace)
-                .ignore_then(
-                    select! { Token::Operator(operator) if operator == "^" => Binary::Power },
-                )
+                .ignore_then(select! { Token::Power => Binary::Power })
                 .then_ignore(just(Token::Whitespace))
                 .then(binary)
                 .repeated(),
@@ -118,13 +116,13 @@ fn binary_parser<'a>(
         .then(
             just(Token::Whitespace)
                 .ignore_then(select! {
-                    Token::Operator(operator) if operator == r"/\" => Binary::Exterior,
-                    Token::Operator(operator) if operator == r"\/" => Binary::Regressive,
-                    Token::Operator(operator) if operator == r">>" => Binary::LeftContraction,
-                    Token::Operator(operator) if operator == r"<<" => Binary::RightContraction,
-                    Token::Operator(operator) if operator == r"|" => Binary::Inner,
-                    Token::Operator(operator) if operator == r"*" => Binary::Scalar,
-                    Token::Operator(operator) if operator == r"/" => Binary::Divide,
+                    Token::ExteriorProduct => Binary::Exterior,
+                    Token::RegressiveProduct => Binary::Regressive,
+                    Token::LeftContraction => Binary::LeftContraction,
+                    Token::RightContraction => Binary::RightContraction,
+                    Token::InnerProduct => Binary::Inner,
+                    Token::ScalarProduct => Binary::Scalar,
+                    Token::Division => Binary::Divide,
                 })
                 .then_ignore(just(Token::Whitespace))
                 .then(binary)
