@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Metric(pub Vec<Square>);
 
@@ -16,17 +18,23 @@ pub enum Square {
 
 impl std::fmt::Display for Metric {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        for (i, square) in self.0.iter().enumerate() {
-            write!(
-                f,
-                "e{i}²={} ",
-                match square {
-                    Square::Pos => "1",
-                    Square::Neg => "-1",
-                    Square::Zero => "0",
-                }
-            )?;
-        }
-        Ok(())
+        write!(
+            f,
+            "{{ {} }}",
+            self.0
+                .iter()
+                .enumerate()
+                .map(|(i, square)| {
+                    format!(
+                        "e{i}² := {}",
+                        match square {
+                            Square::Pos => "1",
+                            Square::Neg => "-1",
+                            Square::Zero => "0",
+                        }
+                    )
+                })
+                .join(", ")
+        )
     }
 }

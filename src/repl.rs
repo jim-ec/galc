@@ -8,6 +8,7 @@ pub fn repl() {
         metric::Square::Pos,
         metric::Square::Pos,
     ]);
+    println!("Metric: {metric}");
 
     loop {
         let mut input = String::new();
