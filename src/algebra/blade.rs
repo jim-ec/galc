@@ -97,7 +97,7 @@ impl Blade {
     }
 
     pub fn norm_squared(&self, metric: &Metric) -> f64 {
-        self.scalar(&self.reverse(), metric).0
+        self.scalar(&self.conjugate(), metric).0
     }
 
     pub fn norm(&self, metric: &Metric) -> f64 {
