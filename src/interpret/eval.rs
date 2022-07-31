@@ -57,6 +57,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                     .ok_or(Undefined(format!("Division by {rhs} not defined")))?,
                 Binary::Power => lhs
                     .power(&rhs, metric)
+                    .map(|(_, blade)| blade)
                     .ok_or(Undefined(format!("Power of {lhs} to {rhs} not defined")))?,
             })
         }

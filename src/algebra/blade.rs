@@ -126,7 +126,7 @@ impl Blade {
         Some(self.geometric(&rhs, metric))
     }
 
-    pub fn power(&self, rhs: &Blade, metric: &Metric) -> Option<Blade> {
+    pub fn power(&self, rhs: &Blade, metric: &Metric) -> Option<(isize, Blade)> {
         if rhs.grade() != 0 {
             return None;
         }
@@ -143,7 +143,7 @@ impl Blade {
             power = power.geometric(&factor, metric);
         }
 
-        Some(power)
+        Some((rhs, power))
     }
 }
 
