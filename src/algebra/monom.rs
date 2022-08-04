@@ -54,13 +54,20 @@ impl Monom {
         Some(Monom(mults, blade))
     }
 
-    pub fn divide(&self, rhs: &Monom, metric: &Metric) -> Option<Blade> {
-        // let rhs = rhs.inverse(metric)?;
-        // Some(self.geometric(&rhs, metric))
+    pub fn divide(&self, rhs: &Monom, metric: &Metric) -> Option<Monom> {
+        let blade = self.1.divide(&rhs.1, metric)?;
 
-        // TODO:
+        // Subtract multiplicities
+        let mut mults = self.0.clone();
+        for (name, &mult_rhs) in &rhs.0 {
+            if let Some(mult) = mults.get_mut(name) {
+                *mult -= mult_rhs;
+            } else {
+                mults.insert(name.clone(), mult_rhs);
+            }
+        }
 
-        todo!()
+        Some(Monom(mults, blade))
     }
 }
 

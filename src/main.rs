@@ -34,7 +34,7 @@ fn main() {
 
     println!("a = {a}");
     println!("b = {b}");
-    print!("{a} {b} = ");
-    let c = a.geometric(&b, &metric);
+    print!("{a} / {b} = ");
+    let c = a.divide(&b, &metric).unwrap();
     println!("{}", c);
 }
