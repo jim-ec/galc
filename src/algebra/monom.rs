@@ -1,41 +1,66 @@
+use std::collections::HashMap;
+
 use super::{blade::Blade, metric::Metric};
 
-pub struct Monom(pub Vec<(String, isize)>, pub Blade);
+pub struct Monom(pub HashMap<String, isize>, pub Blade);
 
 impl Monom {
-    pub fn geometric(self, rhs: Monom, metric: &Metric) -> Monom {
+    pub fn geometric(&self, rhs: &Monom, metric: &Metric) -> Monom {
         self.product(rhs, metric, Blade::geometric)
     }
 
-    pub fn exterior(self, rhs: Monom, metric: &Metric) -> Monom {
+    pub fn exterior(&self, rhs: &Monom, metric: &Metric) -> Monom {
         self.product(rhs, metric, Blade::exterior)
     }
 
-    pub fn left_contraction(self, rhs: Monom, metric: &Metric) -> Monom {
+    pub fn left_contraction(&self, rhs: &Monom, metric: &Metric) -> Monom {
         self.product(rhs, metric, Blade::left_contraction)
     }
 
-    fn product<F>(self, rhs: Monom, metric: &Metric, f: F) -> Monom
+    fn product<F>(&self, rhs: &Monom, metric: &Metric, f: F) -> Monom
     where
         F: FnOnce(&Blade, &Blade, &Metric) -> Blade,
     {
-        let mut names = self.0;
-        names.extend(rhs.0);
-        Monom(names, f(&self.1, &rhs.1, metric))
-    }
-
-    pub fn norm(self, metric: &Metric) -> Monom {
-        Monom(self.0, Blade::from(self.1.norm(metric), metric.dimension()))
-    }
-
-    pub fn power(mut self, rhs: Monom, metric: &Metric) -> Option<Monom> {
-        assert!(rhs.0.is_empty(), "Cannot raise to a variable monom");
-        let (multiplicity, blade) = self.1.power(&rhs.1, metric)?;
-        for (_, m) in self.0.iter_mut() {
-            *m *= multiplicity;
+        // Add multiplicities
+        let mut mults = self.0.clone();
+        for (name, &mult_rhs) in &rhs.0 {
+            if let Some(mult) = mults.get_mut(name) {
+                *mult += mult_rhs;
+            } else {
+                mults.insert(name.clone(), mult_rhs);
+            }
         }
-        self.1 = blade;
-        Some(self)
+
+        Monom(mults, f(&self.1, &rhs.1, metric))
+    }
+
+    pub fn norm(&self, metric: &Metric) -> Monom {
+        Monom(
+            self.0.clone(),
+            Blade::from(self.1.norm(metric), metric.dimension()),
+        )
+    }
+
+    pub fn power(&self, rhs: Monom, metric: &Metric) -> Option<Monom> {
+        assert!(rhs.0.is_empty(), "Cannot raise to a variable monom");
+
+        // Multiply multiplicities
+        let (mult_factor, blade) = self.1.power(&rhs.1, metric)?;
+        let mut mults = self.0.clone();
+        for (_, mult) in mults.iter_mut() {
+            *mult *= mult_factor;
+        }
+
+        Some(Monom(mults, blade))
+    }
+
+    pub fn divide(&self, rhs: &Monom, metric: &Metric) -> Option<Blade> {
+        // let rhs = rhs.inverse(metric)?;
+        // Some(self.geometric(&rhs, metric))
+
+        // TODO:
+
+        todo!()
     }
 }
 

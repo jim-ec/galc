@@ -4,6 +4,7 @@ use algebra::{
     metric::{Metric, Square},
     monom::Monom,
 };
+use common_macros::hash_map;
 
 pub mod algebra;
 pub mod interpret;
@@ -15,17 +16,25 @@ mod test;
 
 fn main() {
     // repl::repl();
+
     let metric = Metric(vec![Square::Neg, Square::Pos]);
     let a = Monom(
-        vec![("a".to_string(), 2)],
+        hash_map!(
+            "a".to_string() => 2,
+        ),
         Blade(2.0, Basis(vec![true, false])),
     );
 
-    // let b = Monom(vec![], Blade(2.0, Basis(vec![false, false])));
+    let b = Monom(
+        hash_map![
+            "a".to_string() => 1
+        ],
+        Blade(2.0, Basis(vec![false, false])),
+    );
 
-    // println!("a = {a}");
-    // println!("b = {b}");
-    print!("[{a}] = ");
-    // let c = a.geometric(b, &metric);
-    println!("{}", a.norm(&metric));
+    println!("a = {a}");
+    println!("b = {b}");
+    print!("{a} {b} = ");
+    let c = a.geometric(&b, &metric);
+    println!("{}", c);
 }
