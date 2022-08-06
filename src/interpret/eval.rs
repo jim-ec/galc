@@ -12,14 +12,14 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
     let new_scalar = |scalar: f64| -> Factor {
         Factor {
             scalar,
-            basis: Basis::one(dimension),
+            basis: Basis::scalar(dimension),
         }
     };
 
     match expr {
         Expr::Number(n) => Ok(Factor {
             scalar: n,
-            basis: Basis::one(dimension),
+            basis: Basis::scalar(dimension),
         }),
         Expr::Pseudoscalar => Ok(Factor {
             scalar: 1.0,
@@ -37,14 +37,14 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
             if let Some((sign, basis)) = vectors
                 .into_iter()
                 .map(|vector| {
-                    let mut basis = Basis::one(dimension);
+                    let mut basis = Basis::scalar(dimension);
                     basis.0[vector] = true;
                     basis
                 })
                 .try_fold(
-                    (Sign::Pos, Basis::one(dimension)),
+                    (Sign::Pos, Basis::scalar(dimension)),
                     |(sign_a, a), b| -> Option<(Sign, Basis)> {
-                        let (sign, product) = a.geometric(&b, metric)?;
+                        let (sign, product) = a.geometric_product(&b, metric)?;
                         Some((sign * sign_a, product))
                     },
                 )
@@ -56,7 +56,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
             } else {
                 Ok(Factor {
                     scalar: 0.0,
-                    basis: Basis::one(dimension),
+                    basis: Basis::scalar(dimension),
                 })
             }
         }
@@ -64,13 +64,13 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
             let lhs = eval(*lhs, metric)?;
             let rhs = eval(*rhs, metric)?;
             Ok(match binary {
-                Binary::Geometric => lhs.geometric(&rhs, metric),
-                Binary::Exterior => lhs.exterior(&rhs, metric),
-                Binary::Regressive => lhs.regressive(&rhs, metric),
+                Binary::Geometric => lhs.geometric_product(&rhs, metric),
+                Binary::Exterior => lhs.exterior_product(&rhs, metric),
+                Binary::Regressive => lhs.regressive_product(&rhs, metric),
                 Binary::LeftContraction => lhs.left_contraction(&rhs, metric),
                 Binary::RightContraction => lhs.right_contraction(&rhs, metric),
-                Binary::Inner => lhs.inner(&rhs, metric),
-                Binary::Scalar => lhs.scalar(&rhs, metric),
+                Binary::Inner => lhs.inner_product(&rhs, metric),
+                Binary::Scalar => lhs.scalar_product(&rhs, metric),
                 Binary::Divide => lhs
                     .divide(&rhs, metric)
                     .ok_or(Undefined(format!("Division by {rhs} not defined")))?,

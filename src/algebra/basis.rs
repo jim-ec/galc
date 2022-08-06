@@ -8,7 +8,7 @@ pub struct Basis(pub Vec<bool>);
 
 impl Basis {
     /// Basis for a scalar.
-    pub fn one(dimension: usize) -> Basis {
+    pub fn scalar(dimension: usize) -> Basis {
         Basis(vec![false; dimension])
     }
 
@@ -51,7 +51,7 @@ impl Basis {
     }
 
     /// Geometric product
-    pub fn geometric(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
+    pub fn geometric_product(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         debug_assert_eq!(
             self.dimension(),
             rhs.dimension(),
@@ -98,8 +98,8 @@ impl Basis {
     }
 
     /// Exterior product
-    pub fn exterior(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
-        let (sign, product) = self.geometric(rhs, metric)?;
+    pub fn exterior_product(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
+        let (sign, product) = self.geometric_product(rhs, metric)?;
         if self.grade() + rhs.grade() == product.grade() {
             Some((sign, product))
         } else {
@@ -108,16 +108,16 @@ impl Basis {
     }
 
     /// Regressive product
-    pub fn regressive(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
+    pub fn regressive_product(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
         self.dual()
-            .exterior(&rhs.dual(), metric)
+            .exterior_product(&rhs.dual(), metric)
             .map(|(sign, product)| (sign, product.dual()))
     }
 
     /// Contraction of `self` onto `rhs`.
     /// Intuitively, this returns the sub-basis of `rhs` which is prependicular to `self`.
     pub fn left_contraction(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
-        let (sign, product) = self.geometric(rhs, metric)?;
+        let (sign, product) = self.geometric_product(rhs, metric)?;
         if rhs.grade().checked_sub(self.grade()) == Some(product.grade()) {
             Some((sign, product))
         } else {
@@ -134,8 +134,8 @@ impl Basis {
     }
 
     /// Inner product
-    pub fn inner(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
-        let (sign, product) = self.geometric(rhs, metric)?;
+    pub fn inner_product(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
+        let (sign, product) = self.geometric_product(rhs, metric)?;
         if rhs.grade().abs_diff(self.grade()) == product.grade() {
             Some((sign, product))
         } else {
@@ -144,8 +144,8 @@ impl Basis {
     }
 
     /// Scalar product
-    pub fn scalar(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
-        let (sign, product) = self.geometric(rhs, metric)?;
+    pub fn scalar_product(&self, rhs: &Basis, metric: &Metric) -> Option<(Sign, Basis)> {
+        let (sign, product) = self.geometric_product(rhs, metric)?;
         if product.grade() == 0 {
             Some((sign, product))
         } else {

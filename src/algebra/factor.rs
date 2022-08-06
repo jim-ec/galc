@@ -19,21 +19,21 @@ impl Factor {
         } else {
             Factor {
                 scalar: 0.0,
-                basis: Basis::one(metric.dimension()),
+                basis: Basis::scalar(metric.dimension()),
             }
         }
     }
 
-    pub fn geometric(&self, rhs: &Factor, metric: &Metric) -> Factor {
-        self.product(rhs, metric, Basis::geometric)
+    pub fn geometric_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+        self.product(rhs, metric, Basis::geometric_product)
     }
 
-    pub fn exterior(&self, rhs: &Factor, metric: &Metric) -> Factor {
-        self.product(rhs, metric, Basis::exterior)
+    pub fn exterior_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+        self.product(rhs, metric, Basis::exterior_product)
     }
 
-    pub fn regressive(&self, rhs: &Factor, metric: &Metric) -> Factor {
-        self.product(rhs, metric, Basis::regressive)
+    pub fn regressive_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+        self.product(rhs, metric, Basis::regressive_product)
     }
 
     pub fn left_contraction(&self, rhs: &Factor, metric: &Metric) -> Factor {
@@ -44,12 +44,12 @@ impl Factor {
         self.product(rhs, metric, Basis::right_contraction)
     }
 
-    pub fn inner(&self, rhs: &Factor, metric: &Metric) -> Factor {
-        self.product(rhs, metric, Basis::inner)
+    pub fn inner_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+        self.product(rhs, metric, Basis::inner_product)
     }
 
-    pub fn scalar(&self, rhs: &Factor, metric: &Metric) -> Factor {
-        self.product(rhs, metric, Basis::scalar)
+    pub fn scalar_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+        self.product(rhs, metric, Basis::scalar_product)
     }
 
     pub fn reverse(&self) -> Factor {
@@ -89,7 +89,7 @@ impl Factor {
     }
 
     pub fn norm_squared(&self, metric: &Metric) -> f64 {
-        self.scalar(&self.conjugate(), metric).scalar
+        self.scalar_product(&self.conjugate(), metric).scalar
     }
 
     pub fn norm(&self, metric: &Metric) -> f64 {
@@ -103,7 +103,7 @@ impl Factor {
     /// On the other hand, `A * inverse(A) = 1` always holds, unless `A` vanishes.
     /// `inverse` thus behaves as a true inverse of the geometric product.
     pub fn inverse(&self, metric: &Metric) -> Option<Factor> {
-        let n = self.scalar(&self.reverse(), metric).scalar;
+        let n = self.scalar_product(&self.reverse(), metric).scalar;
         if n != 0.0 {
             let mut inverse = self.reverse();
             inverse.scalar /= n;
@@ -115,7 +115,7 @@ impl Factor {
 
     pub fn divide(&self, rhs: &Factor, metric: &Metric) -> Option<Factor> {
         let rhs = rhs.inverse(metric)?;
-        Some(self.geometric(&rhs, metric))
+        Some(self.geometric_product(&rhs, metric))
     }
 
     pub fn power(&self, rhs: &Factor, metric: &Metric) -> Option<(isize, Factor)> {
@@ -126,7 +126,7 @@ impl Factor {
 
         let mut power = Factor {
             scalar: 1.0,
-            basis: Basis::one(metric.dimension()),
+            basis: Basis::scalar(metric.dimension()),
         };
         let factor = if rhs > 0 {
             self.clone()
@@ -135,7 +135,7 @@ impl Factor {
         };
 
         for _ in 0..rhs.abs() {
-            power = power.geometric(&factor, metric);
+            power = power.geometric_product(&factor, metric);
         }
 
         Some((rhs, power))
