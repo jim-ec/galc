@@ -55,12 +55,12 @@ impl Basis {
         debug_assert_eq!(
             self.dimension(),
             rhs.dimension(),
-            "To compute the geometric product, both blades must have the same dimension"
+            "To compute the geometric product, both bases must have the same dimension"
         );
         debug_assert_eq!(
             self.dimension(),
             metric.dimension(),
-            "To compute the geometric product, the blade and metric must match in dimension"
+            "To compute the geometric product, the basis and metric must match in dimension"
         );
         let mut vectors = vec![false; self.dimension()];
         let mut sign = Sign::Pos;
