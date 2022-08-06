@@ -7,38 +7,57 @@ use super::expr::{Binary, Expr, Unary};
 pub struct Undefined(pub String);
 
 pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
-    let new_scalar = |scalar: f64| -> Blade { Blade::from(scalar, metric.dimension()) };
+    let dimension = metric.dimension();
+
+    let new_scalar = |scalar: f64| -> Blade {
+        Blade {
+            scalar,
+            basis: Basis::one(dimension),
+        }
+    };
 
     match expr {
-        Expr::Number(n) => Ok(Blade(n, Basis::one(metric.dimension()))),
-        Expr::Pseudoscalar => Ok(Blade(1.0, Basis::pseudoscalar(metric.dimension()))),
+        Expr::Number(n) => Ok(Blade {
+            scalar: n,
+            basis: Basis::one(dimension),
+        }),
+        Expr::Pseudoscalar => Ok(Blade {
+            scalar: 1.0,
+            basis: Basis::pseudoscalar(dimension),
+        }),
         Expr::Basis(vectors) => {
             for &vector in &vectors {
-                if vector >= metric.dimension() {
+                if vector >= dimension {
                     return Err(Undefined(format!(
                         "Invalid basis-vector e{vector} for algebra of dimension {}",
-                        metric.dimension()
+                        dimension
                     )));
                 }
             }
             if let Some((sign, basis)) = vectors
                 .into_iter()
                 .map(|vector| {
-                    let mut basis = Basis::one(metric.dimension());
+                    let mut basis = Basis::one(dimension);
                     basis.0[vector] = true;
                     basis
                 })
                 .try_fold(
-                    (Sign::Pos, Basis::one(metric.dimension())),
+                    (Sign::Pos, Basis::one(dimension)),
                     |(sign_a, a), b| -> Option<(Sign, Basis)> {
                         let (sign, product) = a.geometric(&b, metric)?;
                         Some((sign * sign_a, product))
                     },
                 )
             {
-                Ok(Blade(sign * 1.0, basis))
+                Ok(Blade {
+                    scalar: sign * 1.0,
+                    basis,
+                })
             } else {
-                Ok(Blade::null(metric.dimension()))
+                Ok(Blade {
+                    scalar: 0.0,
+                    basis: Basis::one(dimension),
+                })
             }
         }
         Expr::Binary(binary, lhs, rhs) => {

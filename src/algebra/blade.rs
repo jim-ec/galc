@@ -1,103 +1,95 @@
-use super::{basis::Basis, metric::Metric};
+use super::{basis::Basis, metric::Metric, sign::Sign};
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Blade(pub f64, pub Basis);
+pub struct Blade {
+    pub scalar: f64,
+    pub basis: Basis,
+}
 
 impl Blade {
-    pub fn null(dimension: usize) -> Blade {
-        Blade(0.0, Basis(vec![false; dimension]))
-    }
-
-    pub fn one(dimension: usize) -> Blade {
-        Blade(1.0, Basis(vec![false; dimension]))
-    }
-
-    pub fn from(scalar: f64, dimension: usize) -> Blade {
-        Blade(scalar, Basis(vec![false; dimension]))
+    pub fn product<F>(&self, rhs: &Blade, metric: &Metric, f: F) -> Blade
+    where
+        F: FnOnce(&Basis, &Basis, &Metric) -> Option<(Sign, Basis)>,
+    {
+        if let Some((sign, basis)) = f(&self.basis, &rhs.basis, metric) {
+            Blade {
+                scalar: sign * self.scalar * rhs.scalar,
+                basis,
+            }
+        } else {
+            Blade {
+                scalar: 0.0,
+                basis: Basis::one(metric.dimension()),
+            }
+        }
     }
 
     pub fn geometric(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, basis)) = self.1.geometric(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, basis)
-        } else {
-            Blade::null(self.1.dimension())
-        }
+        self.product(rhs, metric, Basis::geometric)
     }
 
     pub fn exterior(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, basis)) = self.1.exterior(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, basis)
-        } else {
-            Blade::null(self.1.dimension())
-        }
+        self.product(rhs, metric, Basis::exterior)
     }
 
     pub fn regressive(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, basis)) = self.1.regressive(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, basis)
-        } else {
-            Blade::null(self.1.dimension())
-        }
+        self.product(rhs, metric, Basis::regressive)
     }
 
     pub fn left_contraction(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, basis)) = self.1.left_contraction(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, basis)
-        } else {
-            Blade::null(self.1.dimension())
-        }
+        self.product(rhs, metric, Basis::left_contraction)
     }
 
     pub fn right_contraction(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, basis)) = self.1.right_contraction(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, basis)
-        } else {
-            Blade::null(self.1.dimension())
-        }
+        self.product(rhs, metric, Basis::right_contraction)
     }
 
     pub fn inner(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, basis)) = self.1.inner(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, basis)
-        } else {
-            Blade::null(self.1.dimension())
-        }
+        self.product(rhs, metric, Basis::inner)
     }
 
     pub fn scalar(&self, rhs: &Blade, metric: &Metric) -> Blade {
-        if let Some((sign, basis)) = self.1.scalar(&rhs.1, metric) {
-            Blade(sign * self.0 * rhs.0, basis)
-        } else {
-            Blade::null(self.1.dimension())
-        }
+        self.product(rhs, metric, Basis::scalar)
     }
 
     pub fn reverse(&self) -> Blade {
-        Blade(self.1.reverse() * self.0, self.1.clone())
+        Blade {
+            scalar: self.basis.reverse() * self.scalar,
+            basis: self.basis.clone(),
+        }
     }
 
     pub fn involute(&self) -> Blade {
-        Blade(self.1.involute() * self.0, self.1.clone())
+        Blade {
+            scalar: self.basis.involute() * self.scalar,
+            basis: self.basis.clone(),
+        }
     }
 
     pub fn conjugate(&self) -> Blade {
-        Blade(self.1.conjugate() * self.0, self.1.clone())
+        Blade {
+            scalar: self.basis.conjugate() * self.scalar,
+            basis: self.basis.clone(),
+        }
     }
 
     pub fn dual(&self) -> Blade {
-        Blade(self.0, self.1.dual())
+        Blade {
+            scalar: self.scalar,
+            basis: self.basis.dual(),
+        }
     }
 
     pub fn grade(&self) -> usize {
-        self.1.grade()
+        self.basis.grade()
     }
 
     pub fn anti_grade(&self) -> usize {
-        self.1.anti_grade()
+        self.basis.anti_grade()
     }
 
     pub fn norm_squared(&self, metric: &Metric) -> f64 {
-        self.scalar(&self.conjugate(), metric).0
+        self.scalar(&self.conjugate(), metric).scalar
     }
 
     pub fn norm(&self, metric: &Metric) -> f64 {
@@ -111,10 +103,10 @@ impl Blade {
     /// On the other hand, `A * inverse(A) = 1` always holds, unless `A` vanishes.
     /// `inverse` thus behaves as a true inverse of the geometric product.
     pub fn inverse(&self, metric: &Metric) -> Option<Blade> {
-        let n = self.scalar(&self.reverse(), metric).0;
+        let n = self.scalar(&self.reverse(), metric).scalar;
         if n != 0.0 {
             let mut inverse = self.reverse();
-            inverse.0 /= n;
+            inverse.scalar /= n;
             Some(inverse)
         } else {
             None
@@ -130,9 +122,12 @@ impl Blade {
         if rhs.grade() != 0 {
             return None;
         }
-        let rhs = rhs.0.round() as isize;
+        let rhs = rhs.scalar.round() as isize;
 
-        let mut power = Blade::one(metric.dimension());
+        let mut power = Blade {
+            scalar: 1.0,
+            basis: Basis::one(metric.dimension()),
+        };
         let factor = if rhs > 0 {
             self.clone()
         } else {
@@ -151,7 +146,10 @@ impl std::ops::Neg for Blade {
     type Output = Blade;
 
     fn neg(self) -> Self::Output {
-        Blade(-self.0, self.1)
+        Blade {
+            scalar: -self.scalar,
+            basis: self.basis,
+        }
     }
 }
 
@@ -159,14 +157,21 @@ impl std::ops::Mul<Blade> for f64 {
     type Output = Blade;
 
     fn mul(self, rhs: Blade) -> Self::Output {
-        Blade(self * rhs.0, rhs.1)
+        Blade {
+            scalar: self * rhs.scalar,
+            basis: rhs.basis,
+        }
     }
 }
 
 impl std::fmt::Display for Blade {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let r = self.1.grade();
-        let s = if self.0 != 0.0 { self.0 } else { self.0.abs() };
+        let r = self.basis.grade();
+        let s = if self.scalar != 0.0 {
+            self.scalar
+        } else {
+            self.scalar.abs()
+        };
 
         // Print 0 if near enough
         let digits = 10;
@@ -176,11 +181,11 @@ impl std::fmt::Display for Blade {
         if r == 0 || s == 0.0 {
             write!(f, "{}", s)
         } else if r > 0 && s == 1.0 {
-            write!(f, "{}", self.1)
+            write!(f, "{}", self.basis)
         } else if r > 0 && s == -1.0 {
-            write!(f, "-{}", self.1)
+            write!(f, "-{}", self.basis)
         } else {
-            write!(f, "{}{}", s, self.1)
+            write!(f, "{}{}", s, self.basis)
         }
     }
 }
