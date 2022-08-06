@@ -1,27 +1,27 @@
 use std::f64::consts::{E, PI, TAU};
 
-use crate::algebra::{basis::Basis, blade::Blade, metric::Metric, sign::Sign};
+use crate::algebra::{basis::Basis, factor::Factor, metric::Metric, sign::Sign};
 
 use super::expr::{Binary, Expr, Unary};
 
 pub struct Undefined(pub String);
 
-pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
+pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
     let dimension = metric.dimension();
 
-    let new_scalar = |scalar: f64| -> Blade {
-        Blade {
+    let new_scalar = |scalar: f64| -> Factor {
+        Factor {
             scalar,
             basis: Basis::one(dimension),
         }
     };
 
     match expr {
-        Expr::Number(n) => Ok(Blade {
+        Expr::Number(n) => Ok(Factor {
             scalar: n,
             basis: Basis::one(dimension),
         }),
-        Expr::Pseudoscalar => Ok(Blade {
+        Expr::Pseudoscalar => Ok(Factor {
             scalar: 1.0,
             basis: Basis::pseudoscalar(dimension),
         }),
@@ -49,12 +49,12 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                     },
                 )
             {
-                Ok(Blade {
+                Ok(Factor {
                     scalar: sign * 1.0,
                     basis,
                 })
             } else {
-                Ok(Blade {
+                Ok(Factor {
                     scalar: 0.0,
                     basis: Basis::one(dimension),
                 })
@@ -76,7 +76,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Blade, Undefined> {
                     .ok_or(Undefined(format!("Division by {rhs} not defined")))?,
                 Binary::Power => lhs
                     .power(&rhs, metric)
-                    .map(|(_, blade)| blade)
+                    .map(|(_, factor)| factor)
                     .ok_or(Undefined(format!("Power of {lhs} to {rhs} not defined")))?,
             })
         }

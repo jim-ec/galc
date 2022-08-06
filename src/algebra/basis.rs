@@ -31,7 +31,7 @@ impl Basis {
         }
     }
 
-    /// Parity of the grade involution, reversing the sign of odd blades.
+    /// Parity of the grade involution, reversing the sign of odd graded bases.
     pub fn involute(&self) -> Sign {
         if even(self.grade()) {
             Sign::Pos

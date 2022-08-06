@@ -1,4 +1,4 @@
-pub mod blade;
+pub mod factor;
 pub mod metric;
 pub mod basis;
 pub mod sign;
