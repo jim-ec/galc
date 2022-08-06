@@ -1,9 +1,4 @@
-use algebra::{
-    basis::Basis,
-    blade::Blade,
-    metric::{Metric, Square},
-    monom::Monom,
-};
+use algebra::monom::Monom;
 use common_macros::hash_map;
 
 pub mod algebra;
@@ -17,24 +12,23 @@ mod test;
 fn main() {
     // repl::repl();
 
-    let metric = Metric(vec![Square::Neg, Square::Pos]);
+    // let metric = Metric(vec![Square::Neg, Square::Pos]);
     let a = Monom(
         hash_map!(
-            "a".to_string() => 2,
+            // "a".to_string() => 0,
         ),
-        Blade(2.0, Basis(vec![true, false])),
+        // Blade(2.0, Basis(vec![true, false])),
     );
 
     let b = Monom(
         hash_map![
             "a".to_string() => 1
         ],
-        Blade(2.0, Basis(vec![false, false])),
+        // Blade(2.0, Basis(vec![false, false])),
     );
 
-    println!("a = {a}");
-    println!("b = {b}");
-    print!("{a} / {b} = ");
-    let c = a.divide(&b, &metric).unwrap();
-    println!("{}", c);
+    // println!("a = {a}");
+    // println!("b = {b}");
+    print!("{:?} / {:?} = ", a, b);
+    println!("{:?}", a.divide(&b));
 }
