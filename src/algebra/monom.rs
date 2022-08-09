@@ -175,10 +175,10 @@ impl std::fmt::Display for Monomial {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{} ", self.scalar)?;
 
-        for (name, &mult) in self.symbols.iter().sorted_by(|(a, _), (b, _)| a.cmp(b)) {
+        for (name, &multiplicity) in self.symbols.iter().sorted_by(|(a, _), (b, _)| a.cmp(b)) {
             write!(f, "{name}")?;
-            if mult != 1 {
-                write!(f, "^{mult}")?;
+            if multiplicity != 1 {
+                write!(f, "^{multiplicity}")?;
             }
             write!(f, " ")?;
         }
