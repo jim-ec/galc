@@ -1,6 +1,6 @@
 use std::f64::consts::{E, PI, TAU};
 
-use crate::algebra::{basis::Basis, factor::Factor, metric::Metric, monom::Monom, sign::Sign};
+use crate::algebra::{basis::Basis, factor::Factor, metric::Metric, monom::Monomial, sign::Sign};
 
 use super::expr::{Binary, Expr, Unary};
 
@@ -12,7 +12,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
     let new_scalar = |scalar: f64| -> Factor {
         Factor {
             scalar,
-            monom: Monom::default(),
+            monom: Monomial::default(),
             basis: Basis::scalar(dimension),
         }
     };
@@ -20,12 +20,12 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
     match expr {
         Expr::Number(n) => Ok(Factor {
             scalar: n,
-            monom: Monom::default(),
+            monom: Monomial::default(),
             basis: Basis::scalar(dimension),
         }),
         Expr::Pseudoscalar => Ok(Factor {
             scalar: 1.0,
-            monom: Monom::default(),
+            monom: Monomial::default(),
             basis: Basis::pseudoscalar(dimension),
         }),
         Expr::Basis(vectors) => {
@@ -54,13 +54,13 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
             {
                 Ok(Factor {
                     scalar: sign * 1.0,
-                    monom: Monom::default(),
+                    monom: Monomial::default(),
                     basis,
                 })
             } else {
                 Ok(Factor {
                     scalar: 0.0,
-                    monom: Monom::default(),
+                    monom: Monomial::default(),
                     basis: Basis::scalar(dimension),
                 })
             }

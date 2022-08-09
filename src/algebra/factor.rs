@@ -1,11 +1,11 @@
 use itertools::Itertools;
 
-use super::{basis::Basis, metric::Metric, monom::Monom, sign::Sign};
+use super::{basis::Basis, metric::Metric, monom::Monomial, sign::Sign};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Factor {
     pub scalar: f64,
-    pub monom: Monom,
+    pub monom: Monomial,
     pub basis: Basis,
 }
 
@@ -23,7 +23,7 @@ impl Factor {
         } else {
             Factor {
                 scalar: 0.0,
-                monom: Monom::default(),
+                monom: Monomial::default(),
                 basis: Basis::scalar(metric.dimension()),
             }
         }
@@ -135,7 +135,7 @@ impl Factor {
 
         let mut power = Factor {
             scalar: 1.0,
-            monom: Monom::default(),
+            monom: Monomial::default(),
             basis: Basis::scalar(metric.dimension()),
         };
         let factor = if rhs > 0 {

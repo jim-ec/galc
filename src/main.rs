@@ -2,7 +2,7 @@ use algebra::{
     basis::Basis,
     factor::Factor,
     metric::{Metric, Square},
-    monom::Monom,
+    monom::Monomial,
 };
 use common_macros::hash_map;
 
@@ -22,7 +22,7 @@ fn main() {
 
     let a = Factor {
         scalar: 2.5,
-        monom: Monom(hash_map!(
+        monom: Monomial(hash_map!(
             "a".to_string() => 2,
             "b".to_string() => 1,
         )),
@@ -31,7 +31,7 @@ fn main() {
 
     let b = Factor {
         scalar: 3.0,
-        monom: Monom(hash_map!(
+        monom: Monomial(hash_map!(
             "a".to_string() => 2,
             "b".to_string() => 1,
         )),
