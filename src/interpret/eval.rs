@@ -1,6 +1,6 @@
 use std::f64::consts::{E, PI, TAU};
 
-use crate::algebra::{basis::Basis, metric::Metric, monom::Monomial, sign::Sign};
+use crate::algebra::{basis::Basis, metric::Metric, monom::Monomial, sign::Sign, Product};
 
 use super::expr::{Binary, Expr, Unary};
 
@@ -69,13 +69,13 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
             let lhs = eval(*lhs, metric)?;
             let rhs = eval(*rhs, metric)?;
             Ok(match binary {
-                Binary::Geometric => lhs.geometric_product(&rhs, metric),
-                Binary::Exterior => lhs.exterior_product(&rhs, metric),
-                Binary::Regressive => lhs.regressive_product(&rhs, metric),
-                Binary::LeftContraction => lhs.left_contraction(&rhs, metric),
-                Binary::RightContraction => lhs.right_contraction(&rhs, metric),
-                Binary::Inner => lhs.inner_product(&rhs, metric),
-                Binary::Scalar => lhs.scalar_product(&rhs, metric),
+                Binary::Geometric => lhs.product(Product::Geometric, &rhs, metric),
+                Binary::Exterior => lhs.product(Product::Exterior, &rhs, metric),
+                Binary::Regressive => lhs.product(Product::Regressive, &rhs, metric),
+                Binary::LeftContraction => lhs.product(Product::LeftContraction, &rhs, metric),
+                Binary::RightContraction => lhs.product(Product::RightContraction, &rhs, metric),
+                Binary::Inner => lhs.product(Product::Inner, &rhs, metric),
+                Binary::Scalar => lhs.product(Product::Scalar, &rhs, metric),
                 Binary::Divide => lhs
                     .divide(&rhs, metric)
                     .ok_or(Undefined(format!("Division by {rhs} not defined")))?,

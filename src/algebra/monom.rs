@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use std::collections::HashMap;
 
-use super::{basis::Basis, metric::Metric, sign::Sign};
+use super::{basis::Basis, metric::Metric, Product};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Monomial {
@@ -12,10 +12,16 @@ pub struct Monomial {
 }
 
 impl Monomial {
-    pub fn product<F>(&self, rhs: &Monomial, metric: &Metric, f: F) -> Monomial
-    where
-        F: FnOnce(&Basis, &Basis, &Metric) -> Option<(Sign, Basis)>,
-    {
+    pub fn product(&self, product: Product, rhs: &Monomial, metric: &Metric) -> Monomial {
+        let f = match product {
+            Product::Geometric => Basis::geometric_product,
+            Product::Exterior => Basis::exterior_product,
+            Product::Regressive => Basis::regressive_product,
+            Product::LeftContraction => Basis::left_contraction,
+            Product::RightContraction => Basis::right_contraction,
+            Product::Inner => Basis::inner_product,
+            Product::Scalar => Basis::scalar_product,
+        };
         if let Some((sign, basis)) = f(&self.basis, &rhs.basis, metric) {
             let mut symbols = self.symbols.clone();
             for (name, &multiplicity_rhs) in &rhs.symbols {
@@ -38,34 +44,6 @@ impl Monomial {
                 basis: Basis::scalar(metric.dimension()),
             }
         }
-    }
-
-    pub fn geometric_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
-        self.product(rhs, metric, Basis::geometric_product)
-    }
-
-    pub fn exterior_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
-        self.product(rhs, metric, Basis::exterior_product)
-    }
-
-    pub fn regressive_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
-        self.product(rhs, metric, Basis::regressive_product)
-    }
-
-    pub fn left_contraction(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
-        self.product(rhs, metric, Basis::left_contraction)
-    }
-
-    pub fn right_contraction(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
-        self.product(rhs, metric, Basis::right_contraction)
-    }
-
-    pub fn inner_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
-        self.product(rhs, metric, Basis::inner_product)
-    }
-
-    pub fn scalar_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
-        self.product(rhs, metric, Basis::scalar_product)
     }
 
     pub fn reverse(&self) -> Monomial {
@@ -109,7 +87,8 @@ impl Monomial {
     }
 
     pub fn norm_squared(&self, metric: &Metric) -> f64 {
-        self.scalar_product(&self.conjugate(), metric).scalar
+        self.product(Product::Scalar, &self.conjugate(), metric)
+            .scalar
     }
 
     pub fn norm(&self, metric: &Metric) -> f64 {
@@ -123,7 +102,9 @@ impl Monomial {
     /// On the other hand, `A * inverse(A) = 1` always holds, unless `A` vanishes.
     /// `inverse` thus behaves as a true inverse of the geometric product.
     pub fn inverse(&self, metric: &Metric) -> Option<Monomial> {
-        let n = self.scalar_product(&self.reverse(), metric).scalar;
+        let n = self
+            .product(Product::Scalar, &self.reverse(), metric)
+            .scalar;
         if n != 0.0 {
             let mut inverse = self.reverse();
             inverse.scalar /= n;
@@ -138,7 +119,7 @@ impl Monomial {
 
     pub fn divide(&self, rhs: &Monomial, metric: &Metric) -> Option<Monomial> {
         let rhs = rhs.inverse(metric)?;
-        Some(self.geometric_product(&rhs, metric))
+        Some(self.product(Product::Geometric, &rhs, metric))
     }
 
     pub fn power(&self, rhs: &Monomial, metric: &Metric) -> Option<(isize, Monomial)> {
@@ -159,7 +140,7 @@ impl Monomial {
         };
 
         for _ in 0..rhs.abs() {
-            power = power.geometric_product(&monomial, metric);
+            power = power.product(Product::Geometric, &monomial, metric);
         }
 
         Some((rhs, power))

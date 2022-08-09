@@ -5,6 +5,8 @@ use algebra::{
 };
 use common_macros::hash_map;
 
+use crate::algebra::Product;
+
 pub mod algebra;
 pub mod interpret;
 pub mod parse;
@@ -37,7 +39,7 @@ fn main() {
         basis: Basis(vec![false, true]),
     };
 
-    let c = a.geometric_product(&b, &metric);
+    let c = a.product(Product::Geometric, &b, &metric);
 
     println!("{a} {b} = {c}");
 }
