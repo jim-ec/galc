@@ -122,8 +122,8 @@ impl Monomial {
         Some(self.product(Product::Geometric, &rhs, metric))
     }
 
-    pub fn power(&self, rhs: &Monomial, metric: &Metric) -> Option<(isize, Monomial)> {
-        if rhs.grade() != 0 {
+    pub fn power(&self, rhs: &Monomial, metric: &Metric) -> Option<Monomial> {
+        if rhs.grade() != 0 || !rhs.symbols.is_empty() {
             return None;
         }
         let rhs = rhs.scalar.round() as isize;
@@ -143,7 +143,7 @@ impl Monomial {
             power = power.product(Product::Geometric, &monomial, metric);
         }
 
-        Some((rhs, power))
+        Some(power)
     }
 }
 

@@ -44,4 +44,16 @@ impl Polynomial {
         }
         result
     }
+
+    pub fn power(self, other: Polynomial, metric: &Metric) -> Option<Polynomial> {
+        if other.monomials.len() != 1 {
+            return None;
+        }
+
+        let mut result = Polynomial::default();
+        for monomial in self.monomials {
+            result = result + monomial.power(&other.monomials[0], metric)?;
+        }
+        Some(result)
+    }
 }

@@ -81,7 +81,6 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
                     .ok_or(Undefined(format!("Division by {rhs} not defined")))?,
                 Binary::Power => lhs
                     .power(&rhs, metric)
-                    .map(|(_, monomial)| monomial)
                     .ok_or(Undefined(format!("Power of {lhs} to {rhs} not defined")))?,
             })
         }
