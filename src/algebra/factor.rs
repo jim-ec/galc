@@ -1,8 +1,11 @@
-use super::{basis::Basis, metric::Metric, sign::Sign};
+use itertools::Itertools;
+
+use super::{basis::Basis, metric::Metric, monom::Monom, sign::Sign};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Factor {
     pub scalar: f64,
+    pub monom: Monom,
     pub basis: Basis,
 }
 
@@ -14,11 +17,13 @@ impl Factor {
         if let Some((sign, basis)) = f(&self.basis, &rhs.basis, metric) {
             Factor {
                 scalar: sign * self.scalar * rhs.scalar,
+                monom: self.monom.product(&rhs.monom),
                 basis,
             }
         } else {
             Factor {
                 scalar: 0.0,
+                monom: Monom::default(),
                 basis: Basis::scalar(metric.dimension()),
             }
         }
@@ -55,6 +60,7 @@ impl Factor {
     pub fn reverse(&self) -> Factor {
         Factor {
             scalar: self.basis.reverse() * self.scalar,
+            monom: self.monom.clone(),
             basis: self.basis.clone(),
         }
     }
@@ -62,6 +68,7 @@ impl Factor {
     pub fn involute(&self) -> Factor {
         Factor {
             scalar: self.basis.involute() * self.scalar,
+            monom: self.monom.clone(),
             basis: self.basis.clone(),
         }
     }
@@ -69,6 +76,7 @@ impl Factor {
     pub fn conjugate(&self) -> Factor {
         Factor {
             scalar: self.basis.conjugate() * self.scalar,
+            monom: self.monom.clone(),
             basis: self.basis.clone(),
         }
     }
@@ -76,6 +84,7 @@ impl Factor {
     pub fn dual(&self) -> Factor {
         Factor {
             scalar: self.scalar,
+            monom: self.monom.clone(),
             basis: self.basis.dual(),
         }
     }
@@ -126,6 +135,7 @@ impl Factor {
 
         let mut power = Factor {
             scalar: 1.0,
+            monom: Monom::default(),
             basis: Basis::scalar(metric.dimension()),
         };
         let factor = if rhs > 0 {
@@ -148,6 +158,7 @@ impl std::ops::Neg for Factor {
     fn neg(self) -> Self::Output {
         Factor {
             scalar: -self.scalar,
+            monom: self.monom,
             basis: self.basis,
         }
     }
@@ -159,6 +170,7 @@ impl std::ops::Mul<Factor> for f64 {
     fn mul(self, rhs: Factor) -> Self::Output {
         Factor {
             scalar: self * rhs.scalar,
+            monom: rhs.monom,
             basis: rhs.basis,
         }
     }
@@ -166,26 +178,18 @@ impl std::ops::Mul<Factor> for f64 {
 
 impl std::fmt::Display for Factor {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let r = self.basis.grade();
-        let s = if self.scalar != 0.0 {
-            self.scalar
-        } else {
-            self.scalar.abs()
-        };
+        write!(f, "{} ", self.scalar)?;
 
-        // Print 0 if near enough
-        let digits = 10;
-        let epsilon = 0.1_f64.powi(digits);
-        let s = if s.abs() < epsilon { 0.0 } else { s };
-
-        if r == 0 || s == 0.0 {
-            write!(f, "{}", s)
-        } else if r > 0 && s == 1.0 {
-            write!(f, "{}", self.basis)
-        } else if r > 0 && s == -1.0 {
-            write!(f, "-{}", self.basis)
-        } else {
-            write!(f, "{}{}", s, self.basis)
+        for (name, &mult) in self.monom.0.iter().sorted_by(|(a, _), (b, _)| a.cmp(b)) {
+            write!(f, "{name}")?;
+            if mult != 1 {
+                write!(f, "^{mult}")?;
+            }
+            write!(f, " ")?;
         }
+
+        write!(f, "{}", self.basis)?;
+
+        Ok(())
     }
 }
