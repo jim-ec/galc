@@ -4,6 +4,7 @@ pub mod monom;
 pub mod polynom;
 pub mod sign;
 
+#[derive(Debug, Clone, Copy)]
 pub enum Product {
     Geometric,
     Exterior,
