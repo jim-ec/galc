@@ -1,11 +1,13 @@
 use itertools::Itertools;
 
-use super::{basis::Basis, metric::Metric, monom::Monomial, sign::Sign};
+use std::collections::HashMap;
+
+use super::{basis::Basis, metric::Metric, sign::Sign};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Factor {
     pub scalar: f64,
-    pub monom: Monomial,
+    pub symbols: HashMap<String, isize>,
     pub basis: Basis,
 }
 
@@ -15,15 +17,24 @@ impl Factor {
         F: FnOnce(&Basis, &Basis, &Metric) -> Option<(Sign, Basis)>,
     {
         if let Some((sign, basis)) = f(&self.basis, &rhs.basis, metric) {
+            let mut symbols = self.symbols.clone();
+            for (name, &multiplicity_rhs) in &rhs.symbols {
+                if let Some(multiplicity) = symbols.get_mut(name) {
+                    *multiplicity += multiplicity_rhs;
+                } else {
+                    symbols.insert(name.clone(), multiplicity_rhs);
+                }
+            }
+
             Factor {
                 scalar: sign * self.scalar * rhs.scalar,
-                monom: self.monom.product(&rhs.monom),
+                symbols,
                 basis,
             }
         } else {
             Factor {
                 scalar: 0.0,
-                monom: Monomial::default(),
+                symbols: Default::default(),
                 basis: Basis::scalar(metric.dimension()),
             }
         }
@@ -60,7 +71,7 @@ impl Factor {
     pub fn reverse(&self) -> Factor {
         Factor {
             scalar: self.basis.reverse() * self.scalar,
-            monom: self.monom.clone(),
+            symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
     }
@@ -68,7 +79,7 @@ impl Factor {
     pub fn involute(&self) -> Factor {
         Factor {
             scalar: self.basis.involute() * self.scalar,
-            monom: self.monom.clone(),
+            symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
     }
@@ -76,7 +87,7 @@ impl Factor {
     pub fn conjugate(&self) -> Factor {
         Factor {
             scalar: self.basis.conjugate() * self.scalar,
-            monom: self.monom.clone(),
+            symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
     }
@@ -84,7 +95,7 @@ impl Factor {
     pub fn dual(&self) -> Factor {
         Factor {
             scalar: self.scalar,
-            monom: self.monom.clone(),
+            symbols: self.symbols.clone(),
             basis: self.basis.dual(),
         }
     }
@@ -116,6 +127,9 @@ impl Factor {
         if n != 0.0 {
             let mut inverse = self.reverse();
             inverse.scalar /= n;
+            for (_, multiplicity) in inverse.symbols.iter_mut() {
+                *multiplicity = -*multiplicity;
+            }
             Some(inverse)
         } else {
             None
@@ -135,7 +149,7 @@ impl Factor {
 
         let mut power = Factor {
             scalar: 1.0,
-            monom: Monomial::default(),
+            symbols: Default::default(),
             basis: Basis::scalar(metric.dimension()),
         };
         let factor = if rhs > 0 {
@@ -158,7 +172,7 @@ impl std::ops::Neg for Factor {
     fn neg(self) -> Self::Output {
         Factor {
             scalar: -self.scalar,
-            monom: self.monom,
+            symbols: self.symbols,
             basis: self.basis,
         }
     }
@@ -170,7 +184,7 @@ impl std::ops::Mul<Factor> for f64 {
     fn mul(self, rhs: Factor) -> Self::Output {
         Factor {
             scalar: self * rhs.scalar,
-            monom: rhs.monom,
+            symbols: rhs.symbols,
             basis: rhs.basis,
         }
     }
@@ -180,7 +194,7 @@ impl std::fmt::Display for Factor {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{} ", self.scalar)?;
 
-        for (name, &mult) in self.monom.0.iter().sorted_by(|(a, _), (b, _)| a.cmp(b)) {
+        for (name, &mult) in self.symbols.iter().sorted_by(|(a, _), (b, _)| a.cmp(b)) {
             write!(f, "{name}")?;
             if mult != 1 {
                 write!(f, "^{mult}")?;
