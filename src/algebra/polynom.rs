@@ -1,15 +1,15 @@
-use super::factor::Factor;
+use super::monom::Monomial;
 
 #[derive(Debug, Clone)]
 pub struct Polynomial {
-    factors: Vec<Factor>,
+    monomials: Vec<Monomial>,
 }
 
 /// The zero polynomial.
 impl Default for Polynomial {
     fn default() -> Self {
         Self {
-            factors: Vec::default(),
+            monomials: Vec::default(),
         }
     }
 }
@@ -18,18 +18,18 @@ impl std::ops::Add for Polynomial {
     type Output = Polynomial;
 
     fn add(self, mut rhs: Polynomial) -> Self::Output {
-        let mut factors = self.factors;
-        factors.append(&mut rhs.factors);
-        Polynomial { factors }
+        let mut monomials = self.monomials;
+        monomials.append(&mut rhs.monomials);
+        Polynomial { monomials }
     }
 }
 
-impl std::ops::Add<Factor> for Polynomial {
+impl std::ops::Add<Monomial> for Polynomial {
     type Output = Polynomial;
 
-    fn add(self, rhs: Factor) -> Self::Output {
-        let mut factors = self.factors;
-        factors.push(rhs);
-        Polynomial { factors }
+    fn add(self, rhs: Monomial) -> Self::Output {
+        let mut monomials = self.monomials;
+        monomials.push(rhs);
+        Polynomial { monomials }
     }
 }

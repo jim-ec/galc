@@ -1,16 +1,16 @@
 use std::f64::consts::{E, PI, TAU};
 
-use crate::algebra::{basis::Basis, factor::Factor, metric::Metric, sign::Sign};
+use crate::algebra::{basis::Basis, metric::Metric, monom::Monomial, sign::Sign};
 
 use super::expr::{Binary, Expr, Unary};
 
 pub struct Undefined(pub String);
 
-pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
+pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
     let dimension = metric.dimension();
 
-    let new_scalar = |scalar: f64| -> Factor {
-        Factor {
+    let new_scalar = |scalar: f64| -> Monomial {
+        Monomial {
             scalar,
             symbols: Default::default(),
             basis: Basis::scalar(dimension),
@@ -18,12 +18,12 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
     };
 
     match expr {
-        Expr::Number(n) => Ok(Factor {
+        Expr::Number(n) => Ok(Monomial {
             scalar: n,
             symbols: Default::default(),
             basis: Basis::scalar(dimension),
         }),
-        Expr::Pseudoscalar => Ok(Factor {
+        Expr::Pseudoscalar => Ok(Monomial {
             scalar: 1.0,
             symbols: Default::default(),
             basis: Basis::pseudoscalar(dimension),
@@ -52,13 +52,13 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
                     },
                 )
             {
-                Ok(Factor {
+                Ok(Monomial {
                     scalar: sign * 1.0,
                     symbols: Default::default(),
                     basis,
                 })
             } else {
-                Ok(Factor {
+                Ok(Monomial {
                     scalar: 0.0,
                     symbols: Default::default(),
                     basis: Basis::scalar(dimension),
@@ -81,7 +81,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Factor, Undefined> {
                     .ok_or(Undefined(format!("Division by {rhs} not defined")))?,
                 Binary::Power => lhs
                     .power(&rhs, metric)
-                    .map(|(_, factor)| factor)
+                    .map(|(_, monomial)| monomial)
                     .ok_or(Undefined(format!("Power of {lhs} to {rhs} not defined")))?,
             })
         }

@@ -1,7 +1,7 @@
 use algebra::{
     basis::Basis,
-    factor::Factor,
     metric::{Metric, Square},
+    monom::Monomial,
 };
 use common_macros::hash_map;
 
@@ -19,7 +19,7 @@ fn main() {
     let metric = Metric(vec![Square::Pos, Square::Pos]);
     // let dim = metric.dimension();
 
-    let a = Factor {
+    let a = Monomial {
         scalar: 2.5,
         symbols: hash_map!(
             "a".to_string() => 2,
@@ -28,7 +28,7 @@ fn main() {
         basis: Basis(vec![true, false]),
     };
 
-    let b = Factor {
+    let b = Monomial {
         scalar: 3.0,
         symbols: hash_map!(
             "a".to_string() => 2,

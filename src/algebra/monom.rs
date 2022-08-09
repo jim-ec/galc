@@ -5,14 +5,14 @@ use std::collections::HashMap;
 use super::{basis::Basis, metric::Metric, sign::Sign};
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Factor {
+pub struct Monomial {
     pub scalar: f64,
     pub symbols: HashMap<String, isize>,
     pub basis: Basis,
 }
 
-impl Factor {
-    pub fn product<F>(&self, rhs: &Factor, metric: &Metric, f: F) -> Factor
+impl Monomial {
+    pub fn product<F>(&self, rhs: &Monomial, metric: &Metric, f: F) -> Monomial
     where
         F: FnOnce(&Basis, &Basis, &Metric) -> Option<(Sign, Basis)>,
     {
@@ -26,13 +26,13 @@ impl Factor {
                 }
             }
 
-            Factor {
+            Monomial {
                 scalar: sign * self.scalar * rhs.scalar,
                 symbols,
                 basis,
             }
         } else {
-            Factor {
+            Monomial {
                 scalar: 0.0,
                 symbols: Default::default(),
                 basis: Basis::scalar(metric.dimension()),
@@ -40,60 +40,60 @@ impl Factor {
         }
     }
 
-    pub fn geometric_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+    pub fn geometric_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
         self.product(rhs, metric, Basis::geometric_product)
     }
 
-    pub fn exterior_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+    pub fn exterior_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
         self.product(rhs, metric, Basis::exterior_product)
     }
 
-    pub fn regressive_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+    pub fn regressive_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
         self.product(rhs, metric, Basis::regressive_product)
     }
 
-    pub fn left_contraction(&self, rhs: &Factor, metric: &Metric) -> Factor {
+    pub fn left_contraction(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
         self.product(rhs, metric, Basis::left_contraction)
     }
 
-    pub fn right_contraction(&self, rhs: &Factor, metric: &Metric) -> Factor {
+    pub fn right_contraction(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
         self.product(rhs, metric, Basis::right_contraction)
     }
 
-    pub fn inner_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+    pub fn inner_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
         self.product(rhs, metric, Basis::inner_product)
     }
 
-    pub fn scalar_product(&self, rhs: &Factor, metric: &Metric) -> Factor {
+    pub fn scalar_product(&self, rhs: &Monomial, metric: &Metric) -> Monomial {
         self.product(rhs, metric, Basis::scalar_product)
     }
 
-    pub fn reverse(&self) -> Factor {
-        Factor {
+    pub fn reverse(&self) -> Monomial {
+        Monomial {
             scalar: self.basis.reverse() * self.scalar,
             symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
     }
 
-    pub fn involute(&self) -> Factor {
-        Factor {
+    pub fn involute(&self) -> Monomial {
+        Monomial {
             scalar: self.basis.involute() * self.scalar,
             symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
     }
 
-    pub fn conjugate(&self) -> Factor {
-        Factor {
+    pub fn conjugate(&self) -> Monomial {
+        Monomial {
             scalar: self.basis.conjugate() * self.scalar,
             symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
     }
 
-    pub fn dual(&self) -> Factor {
-        Factor {
+    pub fn dual(&self) -> Monomial {
+        Monomial {
             scalar: self.scalar,
             symbols: self.symbols.clone(),
             basis: self.basis.dual(),
@@ -122,7 +122,7 @@ impl Factor {
     /// The difference is that `A * ~A = 1` only holds if `A` is normalized.
     /// On the other hand, `A * inverse(A) = 1` always holds, unless `A` vanishes.
     /// `inverse` thus behaves as a true inverse of the geometric product.
-    pub fn inverse(&self, metric: &Metric) -> Option<Factor> {
+    pub fn inverse(&self, metric: &Metric) -> Option<Monomial> {
         let n = self.scalar_product(&self.reverse(), metric).scalar;
         if n != 0.0 {
             let mut inverse = self.reverse();
@@ -136,41 +136,41 @@ impl Factor {
         }
     }
 
-    pub fn divide(&self, rhs: &Factor, metric: &Metric) -> Option<Factor> {
+    pub fn divide(&self, rhs: &Monomial, metric: &Metric) -> Option<Monomial> {
         let rhs = rhs.inverse(metric)?;
         Some(self.geometric_product(&rhs, metric))
     }
 
-    pub fn power(&self, rhs: &Factor, metric: &Metric) -> Option<(isize, Factor)> {
+    pub fn power(&self, rhs: &Monomial, metric: &Metric) -> Option<(isize, Monomial)> {
         if rhs.grade() != 0 {
             return None;
         }
         let rhs = rhs.scalar.round() as isize;
 
-        let mut power = Factor {
+        let mut power = Monomial {
             scalar: 1.0,
             symbols: Default::default(),
             basis: Basis::scalar(metric.dimension()),
         };
-        let factor = if rhs > 0 {
+        let monomial = if rhs > 0 {
             self.clone()
         } else {
             self.inverse(metric)?
         };
 
         for _ in 0..rhs.abs() {
-            power = power.geometric_product(&factor, metric);
+            power = power.geometric_product(&monomial, metric);
         }
 
         Some((rhs, power))
     }
 }
 
-impl std::ops::Neg for Factor {
-    type Output = Factor;
+impl std::ops::Neg for Monomial {
+    type Output = Monomial;
 
     fn neg(self) -> Self::Output {
-        Factor {
+        Monomial {
             scalar: -self.scalar,
             symbols: self.symbols,
             basis: self.basis,
@@ -178,11 +178,11 @@ impl std::ops::Neg for Factor {
     }
 }
 
-impl std::ops::Mul<Factor> for f64 {
-    type Output = Factor;
+impl std::ops::Mul<Monomial> for f64 {
+    type Output = Monomial;
 
-    fn mul(self, rhs: Factor) -> Self::Output {
-        Factor {
+    fn mul(self, rhs: Monomial) -> Self::Output {
+        Monomial {
             scalar: self * rhs.scalar,
             symbols: rhs.symbols,
             basis: rhs.basis,
@@ -190,7 +190,7 @@ impl std::ops::Mul<Factor> for f64 {
     }
 }
 
-impl std::fmt::Display for Factor {
+impl std::fmt::Display for Monomial {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{} ", self.scalar)?;
 
