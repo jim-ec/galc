@@ -76,9 +76,10 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
                 Binary::RightContraction => lhs.product(Product::RightContraction, &rhs, metric),
                 Binary::Inner => lhs.product(Product::Inner, &rhs, metric),
                 Binary::Scalar => lhs.product(Product::Scalar, &rhs, metric),
-                Binary::Divide => lhs
-                    .divide(&rhs, metric)
-                    .ok_or(Undefined(format!("Division by {rhs} not defined")))?,
+                Binary::Divide => match rhs.inverse(metric) {
+                    Some(rhs) => lhs.product(Product::Geometric, &rhs, metric),
+                    None => return Err(Undefined(format!("Division by {rhs} not defined"))),
+                },
                 Binary::Power => lhs
                     .power(&rhs, metric)
                     .ok_or(Undefined(format!("Power of {lhs} to {rhs} not defined")))?,

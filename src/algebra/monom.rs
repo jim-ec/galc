@@ -117,11 +117,6 @@ impl Monomial {
         }
     }
 
-    pub fn divide(&self, rhs: &Monomial, metric: &Metric) -> Option<Monomial> {
-        let rhs = rhs.inverse(metric)?;
-        Some(self.product(Product::Geometric, &rhs, metric))
-    }
-
     pub fn power(&self, rhs: &Monomial, metric: &Metric) -> Option<Monomial> {
         if rhs.grade() != 0 || !rhs.symbols.is_empty() {
             return None;
