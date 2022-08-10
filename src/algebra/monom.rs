@@ -102,19 +102,19 @@ impl Monomial {
     /// On the other hand, `A * inverse(A) = 1` always holds, unless `A` vanishes.
     /// `inverse` thus behaves as a true inverse of the geometric product.
     pub fn inverse(&self, metric: &Metric) -> Option<Monomial> {
-        let n = self
-            .product(Product::Scalar, &self.reverse(), metric)
-            .scalar;
-        if n != 0.0 {
-            let mut inverse = self.reverse();
-            inverse.scalar /= n;
-            for (_, multiplicity) in inverse.symbols.iter_mut() {
-                *multiplicity = -*multiplicity;
-            }
-            Some(inverse)
-        } else {
-            None
+        if self.norm_squared(metric) == 0.0 {
+            return None;
         }
+
+        let mut inverse = self.reverse();
+
+        inverse.scalar /= self.norm_squared(metric);
+
+        for (_, multiplicity) in inverse.symbols.iter_mut() {
+            *multiplicity = -*multiplicity;
+        }
+
+        Some(inverse)
     }
 
     pub fn power(&self, rhs: &Monomial, metric: &Metric) -> Option<Monomial> {

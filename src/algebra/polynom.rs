@@ -56,4 +56,14 @@ impl Polynomial {
         }
         Some(result)
     }
+
+    pub fn inverse(self, metric: &Metric) -> Option<Polynomial> {
+        let mut inverse_monomials = Vec::new();
+        for monomial in self.monomials {
+            inverse_monomials.push(monomial.inverse(metric)?);
+        }
+        Some(Polynomial {
+            monomials: inverse_monomials,
+        })
+    }
 }
