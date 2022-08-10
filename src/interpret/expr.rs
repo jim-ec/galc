@@ -6,6 +6,7 @@ pub enum Expr {
     Unary(Unary, Box<Expr>),
     Norm(Box<Expr>),
     Identifier(String),
+    Bottom,
 }
 
 #[derive(Clone, Copy)]

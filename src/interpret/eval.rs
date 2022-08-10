@@ -1,5 +1,3 @@
-use std::f64::consts::{E, PI, TAU};
-
 use crate::algebra::{basis::Basis, metric::Metric, monom::Monomial, sign::Sign, Product};
 
 use super::expr::{Binary, Expr, Unary};
@@ -9,25 +7,19 @@ pub struct Undefined(pub String);
 pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
     let dimension = metric.dimension();
 
-    let new_scalar = |scalar: f64| -> Monomial {
-        Monomial {
-            scalar,
-            symbols: Default::default(),
-            basis: Basis::scalar(dimension),
-        }
-    };
-
     match expr {
         Expr::Number(n) => Ok(Monomial {
             scalar: n,
             symbols: Default::default(),
             basis: Basis::scalar(dimension),
         }),
+
         Expr::Pseudoscalar => Ok(Monomial {
             scalar: 1.0,
             symbols: Default::default(),
             basis: Basis::pseudoscalar(dimension),
         }),
+
         Expr::Basis(vectors) => {
             for &vector in &vectors {
                 if vector >= dimension {
@@ -65,6 +57,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
                 })
             }
         }
+
         Expr::Binary(binary, lhs, rhs) => {
             let lhs = eval(*lhs, metric)?;
             let rhs = eval(*rhs, metric)?;
@@ -85,6 +78,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
                     .ok_or(Undefined(format!("Power of {lhs} to {rhs} not defined")))?,
             })
         }
+
         Expr::Unary(unary, x) => {
             let x = eval(*x, metric)?;
             match unary {
@@ -98,17 +92,21 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
                 Unary::Conjugate => Ok(x.conjugate()),
             }
         }
+
         Expr::Norm(x) => {
             let x = eval(*x, metric)?;
-            let y = x.norm(metric);
-            Ok(new_scalar(y))
+            let norm = x.norm(metric);
+            Ok(Monomial {
+                scalar: norm,
+                symbols: Default::default(),
+                basis: Basis::scalar(dimension),
+            })
         }
+
         Expr::Identifier(name) => match name.as_str() {
-            "undefined" | "⊥" => Err(Undefined(format!("Undefined computation"))),
-            "e" => Ok(new_scalar(E)),
-            "tau" | "τ" => Ok(new_scalar(TAU)),
-            "pi" | "π" => Ok(new_scalar(PI)),
             _ => Err(Undefined(format!("Unknown variable {name}"))),
         },
+
+        Expr::Bottom => Err(Undefined(format!("Undefined computation"))),
     }
 }

@@ -61,7 +61,7 @@ pub fn repl() {
                 Ok(result) => println!("  = {result}"),
                 Err(eval::Undefined(cause)) => {
                     println!("  {}", cause);
-                    println!("  = ⊥");
+                    println!("  = _|_");
                 }
             };
         }

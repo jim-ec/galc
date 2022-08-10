@@ -6,6 +6,7 @@ pub enum Token {
     Number(String),
     Basis(Vec<usize>),
     Identifier(String),
+    Bottom,
     ParenOpen,
     ParenClose,
     BracketOpen,
@@ -49,6 +50,8 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
     ))
     .boxed();
 
+    let bottom: BoxedParser<char, Token, Simple<char>> = just(r"_|_").to(Token::Bottom).boxed();
+
     let number: BoxedParser<char, Token, Simple<char>> = text::int(10)
         .then(just('.').ignore_then(text::int(10)).or_not())
         .map(|(int, frac)| {
@@ -91,7 +94,9 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
     }
     .boxed();
 
-    choice((whitespace, operator, number, basis, identifier, delimiter))
-        .repeated()
-        .then_ignore(end())
+    choice((
+        whitespace, bottom, operator, number, basis, identifier, delimiter,
+    ))
+    .repeated()
+    .then_ignore(end())
 }

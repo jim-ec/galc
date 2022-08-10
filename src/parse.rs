@@ -58,6 +58,7 @@ fn operand_parser<'a>(
         Token::Basis(basis) => Expr::Basis(basis),
         Token::Identifier(identifier) if identifier == "i" => Expr::Pseudoscalar,
         Token::Identifier(identifier) => Expr::Identifier(identifier),
+        Token::Bottom => Expr::Bottom,
     }
     .or(expr
         .clone()
