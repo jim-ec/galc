@@ -20,6 +20,8 @@ pub enum Binary {
     Scalar,
     Divide,
     Power,
+    Add,
+    Sub,
 }
 
 #[derive(Clone, Copy)]

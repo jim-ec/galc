@@ -85,6 +85,8 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Polynomial, Undefined> {
                     .clone()
                     .power(rhs.clone(), metric)
                     .ok_or(Undefined(format!("Power of {lhs} to {rhs} not defined")))?,
+                Binary::Add => lhs + rhs,
+                Binary::Sub => lhs + -rhs,
             })
         }
 

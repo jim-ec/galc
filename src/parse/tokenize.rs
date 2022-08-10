@@ -11,6 +11,7 @@ pub enum Token {
     ParenClose,
     BracketOpen,
     BracketClose,
+    Addition,
     Subtraction,
     Dual,
     Reverse,
@@ -36,6 +37,7 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
         .boxed();
 
     let operator: BoxedParser<char, Token, Simple<char>> = choice((
+        just(r"+").to(Token::Addition),
         just(r"-").to(Token::Subtraction),
         just(r"!").to(Token::Dual),
         just(r"~").to(Token::Reverse),

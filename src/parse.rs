@@ -132,5 +132,20 @@ fn binary_parser<'a>(
         .foldl(|lhs, (op, rhs)| Expr::Binary(op, Box::new(lhs), Box::new(rhs)))
         .boxed();
 
+    let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
+        .clone()
+        .then(
+            just(Token::Whitespace)
+                .ignore_then(select! {
+                    Token::Addition => Binary::Add,
+                    Token::Subtraction => Binary::Sub,
+                })
+                .then_ignore(just(Token::Whitespace))
+                .then(binary)
+                .repeated(),
+        )
+        .foldl(|lhs, (op, rhs)| Expr::Binary(op, Box::new(lhs), Box::new(rhs)))
+        .boxed();
+
     binary
 }
