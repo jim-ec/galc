@@ -1,3 +1,5 @@
+use common_macros::hash_map;
+
 use crate::algebra::{basis::Basis, metric::Metric, monom::Monomial, sign::Sign, Product};
 
 use super::expr::{Binary, Expr, Unary};
@@ -103,9 +105,11 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Monomial, Undefined> {
             })
         }
 
-        Expr::Identifier(name) => match name.as_str() {
-            _ => Err(Undefined(format!("Unknown variable {name}"))),
-        },
+        Expr::Unknown(name) => Ok(Monomial {
+            scalar: 1.0,
+            symbols: hash_map![name => 1],
+            basis: Basis::scalar(dimension),
+        }),
 
         Expr::Bottom => Err(Undefined(format!("Undefined computation"))),
     }

@@ -5,7 +5,7 @@ pub enum Expr {
     Binary(Binary, Box<Expr>, Box<Expr>),
     Unary(Unary, Box<Expr>),
     Norm(Box<Expr>),
-    Identifier(String),
+    Unknown(String),
     Bottom,
 }
 

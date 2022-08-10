@@ -57,7 +57,7 @@ fn operand_parser<'a>(
         Token::Number(number) => Expr::Number(number.parse().unwrap()),
         Token::Basis(basis) => Expr::Basis(basis),
         Token::Identifier(identifier) if identifier == "i" => Expr::Pseudoscalar,
-        Token::Identifier(identifier) => Expr::Identifier(identifier),
+        Token::Identifier(identifier) => Expr::Unknown(identifier),
         Token::Bottom => Expr::Bottom,
     }
     .or(expr
