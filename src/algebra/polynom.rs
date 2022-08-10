@@ -34,6 +34,20 @@ impl std::ops::Add<Monomial> for Polynomial {
     }
 }
 
+impl std::ops::Neg for Polynomial {
+    type Output = Polynomial;
+
+    fn neg(self) -> Self::Output {
+        Polynomial {
+            monomials: self
+                .monomials
+                .into_iter()
+                .map(|monomial| -monomial)
+                .collect(),
+        }
+    }
+}
+
 impl Polynomial {
     pub fn product(self, product: Product, other: Polynomial, metric: &Metric) -> Polynomial {
         let mut result = Polynomial::default();
@@ -65,5 +79,66 @@ impl Polynomial {
         Some(Polynomial {
             monomials: inverse_monomials,
         })
+    }
+
+    pub fn dual(self) -> Polynomial {
+        Polynomial {
+            monomials: self
+                .monomials
+                .into_iter()
+                .map(|monomial| monomial.dual())
+                .collect(),
+        }
+    }
+
+    pub fn involute(self) -> Polynomial {
+        Polynomial {
+            monomials: self
+                .monomials
+                .into_iter()
+                .map(|monomial| monomial.involute())
+                .collect(),
+        }
+    }
+
+    pub fn conjugate(self) -> Polynomial {
+        Polynomial {
+            monomials: self
+                .monomials
+                .into_iter()
+                .map(|monomial| monomial.conjugate())
+                .collect(),
+        }
+    }
+
+    pub fn reverse(self) -> Polynomial {
+        Polynomial {
+            monomials: self
+                .monomials
+                .into_iter()
+                .map(|monomial| monomial.reverse())
+                .collect(),
+        }
+    }
+
+    pub fn norm(self, metric: &Metric) -> f64 {
+        self.monomials
+            .into_iter()
+            .map(|monomial| monomial.norm(metric))
+            .sum()
+    }
+}
+
+impl std::convert::From<Monomial> for Polynomial {
+    fn from(monomial: Monomial) -> Self {
+        Polynomial {
+            monomials: vec![monomial],
+        }
+    }
+}
+
+impl std::fmt::Display for Polynomial {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
