@@ -33,8 +33,8 @@ pub fn repl() {
                     println!(r"Geometric product:  a b");
                     println!(r"Exteriour product:  a /\ b");
                     println!(r"Regressive product: a \/ b");
-                    println!(r"Left contraction:   a >> b");
-                    println!(r"Right contraction:  a << b");
+                    println!(r"Left contraction:   a -| b");
+                    println!(r"Right contraction:  a |- b");
                     println!(r"Inner product:      a | b");
                     println!(r"Scalar product:     a * b");
                     println!(r"Division:           a / b");
