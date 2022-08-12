@@ -22,7 +22,7 @@ impl std::ops::Add for Polynomial {
     fn add(self, mut other: Polynomial) -> Self::Output {
         let mut monomials = self.monomials;
         monomials.append(&mut other.monomials);
-        Polynomial { monomials }
+        Polynomial { monomials }.merge_same_bases()
     }
 }
 
@@ -32,7 +32,7 @@ impl std::ops::Add<Monomial> for Polynomial {
     fn add(self, other: Monomial) -> Self::Output {
         let mut monomials = self.monomials;
         monomials.push(other);
-        Polynomial { monomials }
+        Polynomial { monomials }.merge_same_bases()
     }
 }
 
@@ -128,6 +128,27 @@ impl Polynomial {
             .into_iter()
             .map(|monomial| monomial.norm(metric))
             .sum()
+    }
+
+    pub fn merge_same_bases(self) -> Polynomial {
+        let mut result = Polynomial::default();
+        for monomial in self.monomials {
+            let mut found_monomial = false;
+            for result_monomial in &mut result.monomials {
+                if monomial.basis == result_monomial.basis {
+                    result_monomial.scalar += monomial.scalar;
+                    result_monomial
+                        .symbols
+                        .extend(monomial.symbols.clone().into_iter());
+                    found_monomial = true;
+                    break;
+                }
+            }
+            if !found_monomial {
+                result.monomials.push(monomial);
+            }
+        }
+        result
     }
 }
 
