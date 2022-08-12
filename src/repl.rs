@@ -58,7 +58,9 @@ pub fn repl() {
             };
 
             match eval::eval(expr, &metric) {
-                Ok(result) => println!("  = {result}"),
+                Ok(result) => {
+                    println!("  = {}", result.merge_monomials());
+                }
                 Err(eval::Undefined(cause)) => {
                     println!("  {}", cause);
                     println!("  = _|_");

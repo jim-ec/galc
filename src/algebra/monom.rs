@@ -168,34 +168,32 @@ impl std::ops::Mul<Monomial> for f64 {
 
 impl std::fmt::Display for Monomial {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let symbols: Vec<_> = self
+        let symbols = self
             .symbols
             .iter()
             .sorted_by(|(a, _), (b, _)| a.cmp(b))
-            .collect();
+            .map(|(name, &multiplicity)| {
+                if multiplicity == 1 {
+                    format!("{name}")
+                } else {
+                    format!("{name}^{multiplicity}")
+                }
+            })
+            .join(" ");
 
         let just_scalar = symbols.is_empty() && self.basis.grade() == 0;
         if self.scalar == -1.0 && !just_scalar {
             write!(f, "-")?;
-        } else if self.scalar != 1.0 && just_scalar {
-            write!(f, "{} ", self.scalar)?;
-        }
-
-        for (name, &multiplicity) in symbols.iter().rev().skip(1).rev() {
-            write!(f, "{name}")?;
-            if multiplicity != 1 {
-                write!(f, "^{multiplicity}")?;
-            }
-            write!(f, " ")?;
-        }
-        if let Some((name, &multiplicity)) = symbols.last() {
-            write!(f, "{name}")?;
-            if multiplicity != 1 {
-                write!(f, "^{multiplicity}")?;
-            }
-            if self.basis.grade() > 0 {
+        } else if self.scalar != 1.0 || just_scalar {
+            write!(f, "{}", self.scalar)?;
+            if !just_scalar {
                 write!(f, " ")?;
             }
+        }
+
+        write!(f, "{symbols}")?;
+        if !symbols.is_empty() {
+            write!(f, " ")?;
         }
 
         write!(f, "{}", self.basis)?;

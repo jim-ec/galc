@@ -168,7 +168,7 @@ impl std::fmt::Display for Basis {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.anti_grade() == 0 {
             write!(f, "i")?;
-        } else if self.grade() > 1 {
+        } else if self.grade() > 0 {
             write!(f, "e")?;
             for (i, vector) in self.0.iter().enumerate() {
                 if *vector {
