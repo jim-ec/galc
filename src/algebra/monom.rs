@@ -56,7 +56,7 @@ impl Monomial {
 
     pub fn involute(&self) -> Monomial {
         Monomial {
-            scalar: self.basis.involute() * self.scalar,
+            scalar: self.basis.involution() * self.scalar,
             symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }

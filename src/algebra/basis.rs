@@ -32,7 +32,7 @@ impl Basis {
     }
 
     /// Parity of the grade involution, reversing the sign of odd graded bases.
-    pub fn involute(&self) -> Sign {
+    pub fn involution(&self) -> Sign {
         if even(self.grade()) {
             Sign::Pos
         } else {
@@ -42,7 +42,7 @@ impl Basis {
 
     /// Clifford Conjugate
     pub fn conjugate(&self) -> Sign {
-        self.reverse() * self.involute()
+        self.reverse() * self.involution()
     }
 
     /// Poincaré duality operator
