@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use super::{metric::Metric, monom::Monomial, Product};
 
 #[derive(Debug, Clone)]
@@ -160,6 +162,17 @@ impl std::convert::From<Monomial> for Polynomial {
 
 impl std::fmt::Display for Polynomial {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        if self.monomials.is_empty() {
+            write!(f, "0")
+        } else {
+            write!(
+                f,
+                "{}",
+                self.monomials
+                    .iter()
+                    .map(|monomial| monomial.to_string())
+                    .join(" + ")
+            )
+        }
     }
 }
