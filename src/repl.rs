@@ -1,14 +1,62 @@
 use std::io::stdin;
 
+use structopt::StructOpt;
+
 use crate::{algebra::metric, interpret::eval, parse};
 
+#[derive(StructOpt, Debug)]
+#[structopt()]
+struct Options {
+    /// Number of dimensions with metric 1.
+    #[structopt(short = "p", long)]
+    positive: Option<usize>,
+
+    /// Number of dimensions with metric -1.
+    #[structopt(short = "q", long)]
+    negative: Option<usize>,
+
+    /// Number of dimensions with metric 0.
+    #[structopt(short = "r", long)]
+    zero: Option<usize>,
+}
+
 pub fn repl() {
-    let metric = metric::Metric(vec![
-        metric::Square::Zero,
-        metric::Square::Pos,
-        metric::Square::Pos,
-    ]);
-    println!("Metric: {metric}");
+    let options = Options::from_args();
+
+    let mut metric = metric::Metric(vec![]);
+    if let Some(p) = options.positive {
+        metric
+            .0
+            .extend(std::iter::repeat(metric::Square::Pos).take(p));
+    }
+    if let Some(q) = options.negative {
+        metric
+            .0
+            .extend(std::iter::repeat(metric::Square::Neg).take(q));
+    }
+    if let Some(r) = options.zero {
+        metric
+            .0
+            .extend(std::iter::repeat(metric::Square::Zero).take(r));
+    }
+
+    if metric.0.len() > 9 {
+        println!("Only dimensions up to 9 are supported due to notational constraints");
+        return;
+    }
+
+    println!("Metric:");
+    for (i, &square) in metric.0.iter().enumerate() {
+        println!(
+            "e{i}^2 = {}",
+            match square {
+                metric::Square::Pos => "1",
+                metric::Square::Neg => "-1",
+                metric::Square::Zero => "0",
+            }
+        )
+    }
+    println!();
 
     loop {
         let mut input = String::new();
