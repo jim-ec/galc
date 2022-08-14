@@ -2,7 +2,11 @@ use std::io::stdin;
 
 use structopt::StructOpt;
 
-use crate::{algebra::metric, interpret::eval, parse};
+use crate::{
+    algebra::metric::{self, Metric},
+    interpret::eval,
+    parse,
+};
 
 #[derive(StructOpt, Debug)]
 #[structopt()]
@@ -18,6 +22,30 @@ struct Options {
     /// Number of dimensions with metric 0.
     #[structopt(short = "r", long)]
     zero: Option<usize>,
+
+    /// Expression to evaluate. Otherwise enter interactive mode
+    #[structopt()]
+    expression: Option<String>,
+}
+
+fn eval(input: &str, metric: &Metric) {
+    let expr = match parse::parse(input) {
+        Some(expr) => expr,
+        None => {
+            println!();
+            return;
+        }
+    };
+
+    match eval::eval(expr, &metric) {
+        Ok(result) => {
+            println!("  = {}", result.merge_monomials());
+        }
+        Err(eval::Undefined(cause)) => {
+            println!("  {}", cause);
+            println!("  = _|_");
+        }
+    };
 }
 
 pub fn repl() {
@@ -45,7 +73,6 @@ pub fn repl() {
         return;
     }
 
-    println!("Metric:");
     for (i, &square) in metric.0.iter().enumerate() {
         println!(
             "e{i}^2 = {}",
@@ -56,9 +83,14 @@ pub fn repl() {
             }
         )
     }
-    println!();
+
+    if let Some(expression) = options.expression {
+        eval(&expression, &metric);
+        return;
+    }
 
     loop {
+        println!();
         let mut input = String::new();
         stdin()
             .read_line(&mut input)
@@ -97,25 +129,7 @@ pub fn repl() {
                 }
             }
         } else {
-            let expr = match parse::parse(input) {
-                Some(expr) => expr,
-                None => {
-                    println!();
-                    continue;
-                }
-            };
-
-            match eval::eval(expr, &metric) {
-                Ok(result) => {
-                    println!("  = {}", result.merge_monomials());
-                }
-                Err(eval::Undefined(cause)) => {
-                    println!("  {}", cause);
-                    println!("  = _|_");
-                }
-            };
+            eval(input, &metric);
         }
-
-        println!();
     }
 }
