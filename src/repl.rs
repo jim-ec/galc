@@ -12,15 +12,15 @@ use crate::{
 #[structopt()]
 struct Options {
     /// Number of dimensions with metric 1.
-    #[structopt(short = "p", long)]
+    #[structopt(short, long)]
     positive: Option<usize>,
 
     /// Number of dimensions with metric -1.
-    #[structopt(short = "q", long)]
+    #[structopt(short, long)]
     negative: Option<usize>,
 
     /// Number of dimensions with metric 0.
-    #[structopt(short = "r", long)]
+    #[structopt(short, long)]
     zero: Option<usize>,
 
     /// Expression to evaluate. Otherwise enter interactive mode
