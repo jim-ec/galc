@@ -106,7 +106,6 @@ pub fn repl() {
     }
 
     loop {
-        println!();
         let mut input = String::new();
         stdin()
             .read_line(&mut input)
@@ -161,5 +160,7 @@ pub fn repl() {
         } else {
             eval(input, &metric);
         }
+
+        println!();
     }
 }
