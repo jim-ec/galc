@@ -102,3 +102,31 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
     .repeated()
     .then_ignore(end())
 }
+
+impl std::fmt::Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Token::Whitespace => write!(f, "whitespace"),
+            Token::Number(_) => write!(f, "number"),
+            Token::Basis(_) => write!(f, "basis"),
+            Token::Identifier(_) => write!(f, "identifier"),
+            Token::Bottom => write!(f, "_|_"),
+            Token::ParenOpen => write!(f, "("),
+            Token::ParenClose => write!(f, ")"),
+            Token::BracketOpen => write!(f, "["),
+            Token::BracketClose => write!(f, "]"),
+            Token::Addition => write!(f, "+"),
+            Token::Subtraction => write!(f, "-"),
+            Token::Dual => write!(f, "!"),
+            Token::Reverse => write!(f, "~"),
+            Token::ExteriorProduct => write!(f, "/\\"),
+            Token::RegressiveProduct => write!(f, "\\/"),
+            Token::LeftContraction => write!(f, "-|"),
+            Token::RightContraction => write!(f, "|-"),
+            Token::InnerProduct => write!(f, "|"),
+            Token::ScalarProduct => write!(f, "*"),
+            Token::Division => write!(f, "/"),
+            Token::Power => write!(f, "^"),
+        }
+    }
+}

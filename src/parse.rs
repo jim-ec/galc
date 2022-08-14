@@ -18,11 +18,11 @@ pub fn parse(string: &str) -> Option<Expr> {
                         error
                             .expected()
                             .flatten()
-                            .map(|token| format!("{:?}", token))
+                            .map(|token| format!("{token}"))
                             .join(", ")
                     );
                     if let Some(found) = error.found() {
-                        println!("But got: {:?}", found)
+                        println!("But got: {found}")
                     }
                 }
                 None
