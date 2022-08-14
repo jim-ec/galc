@@ -74,13 +74,20 @@ fn unary_parser<'a>(
     expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
 ) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
     select! {
-        Token::Subtraction => Unary::Neg,
-        Token::Dual => Unary::Dual,
-        Token::Reverse => Unary::Reverse,
+        Token::Minus => Unary::Neg,
     }
     .repeated()
     .then(operand_parser(expr))
     .foldr(|op, rhs| Expr::Unary(op, Box::new(rhs)))
+    .then(
+        select! {
+            Token::Asteriks => Unary::Dual,
+            Token::Tilde => Unary::Reverse,
+            Token::Minus => Unary::Conjugate,
+        }
+        .repeated(),
+    )
+    .foldl(|lhs, op| Expr::Unary(op, Box::new(lhs)))
     .boxed()
 }
 
@@ -92,7 +99,7 @@ fn binary_parser<'a>(
     let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
         .clone()
         .then(
-            select! { Token::Power => Binary::Power }
+            select! { Token::Hat => Binary::Power }
                 .then(binary)
                 .repeated(),
         )
@@ -115,13 +122,13 @@ fn binary_parser<'a>(
         .then(
             just(Token::Whitespace)
                 .ignore_then(select! {
-                    Token::ExteriorProduct => Binary::Exterior,
-                    Token::RegressiveProduct => Binary::Regressive,
+                    Token::Wedge => Binary::Exterior,
+                    Token::AntiWedge => Binary::Regressive,
                     Token::LeftContraction => Binary::LeftContraction,
                     Token::RightContraction => Binary::RightContraction,
                     Token::InnerProduct => Binary::Inner,
-                    Token::ScalarProduct => Binary::Scalar,
-                    Token::Division => Binary::Divide,
+                    Token::Asteriks => Binary::Scalar,
+                    Token::Solidus => Binary::Divide,
                 })
                 .then_ignore(just(Token::Whitespace))
                 .then(binary)
@@ -135,8 +142,8 @@ fn binary_parser<'a>(
         .then(
             just(Token::Whitespace)
                 .ignore_then(select! {
-                    Token::Addition => Binary::Add,
-                    Token::Subtraction => Binary::Sub,
+                    Token::Plus => Binary::Add,
+                    Token::Minus => Binary::Sub,
                 })
                 .then_ignore(just(Token::Whitespace))
                 .then(binary)
