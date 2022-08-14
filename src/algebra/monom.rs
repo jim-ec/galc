@@ -192,8 +192,11 @@ impl std::fmt::Display for Monomial {
         }
 
         write!(f, "{symbols}")?;
-        if !symbols.is_empty() {
-            write!(f, " ")?;
+
+        if self.anti_grade() == 0 && self.basis.dimension() > 0 || self.grade() > 0 {
+            if !symbols.is_empty() {
+                write!(f, " ")?;
+            }
         }
 
         write!(f, "{}", self.basis)?;

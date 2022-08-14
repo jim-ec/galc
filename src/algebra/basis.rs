@@ -166,7 +166,7 @@ impl Basis {
 
 impl std::fmt::Display for Basis {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        if self.anti_grade() == 0 {
+        if self.anti_grade() == 0 && self.dimension() > 0 {
             write!(f, "i")?;
         } else if self.grade() > 0 {
             write!(f, "e")?;
