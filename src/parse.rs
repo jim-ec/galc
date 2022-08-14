@@ -92,9 +92,7 @@ fn binary_parser<'a>(
     let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
         .clone()
         .then(
-            just(Token::Whitespace)
-                .ignore_then(select! { Token::Power => Binary::Power })
-                .then_ignore(just(Token::Whitespace))
+            select! { Token::Power => Binary::Power }
                 .then(binary)
                 .repeated(),
         )

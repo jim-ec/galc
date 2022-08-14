@@ -118,7 +118,7 @@ pub fn repl() {
                     println!(r"Inner product:      a | b");
                     println!(r"Scalar product:     a * b");
                     println!(r"Division:           a / b");
-                    println!(r"Power:              a ^ b");
+                    println!(r"Power:              a^b");
                     println!(r"Negation:           -a");
                     println!(r"Dualization:        !a");
                     println!(r"Reversal:           ~a");
