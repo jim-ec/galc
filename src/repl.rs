@@ -100,17 +100,6 @@ pub fn repl() {
         return;
     }
 
-    for (i, &square) in metric.0.iter().enumerate() {
-        println!(
-            "e{i}^2 = {}",
-            match square {
-                metric::Square::Pos => "1",
-                metric::Square::Neg => "-1",
-                metric::Square::Zero => "0",
-            }
-        )
-    }
-
     if let Some(expression) = options.expression {
         eval(&expression, &metric);
         return;
@@ -132,8 +121,9 @@ pub fn repl() {
                 "h" => {
                     println!("Commands");
                     println!("--------");
-                    println!("Quit   :q");
-                    println!("Help   :h");
+                    println!("Quit           :q");
+                    println!("Help           :h");
+                    println!("Print metric   :m");
                     println!();
                     println!("Expressions");
                     println!("-----------");
@@ -151,6 +141,18 @@ pub fn repl() {
                     println!(r"Reversal:           a~");
                     println!(r"Conjugate:          a-");
                     println!(r"Norm:               [a]");
+                }
+                "m" => {
+                    for (i, &square) in metric.0.iter().enumerate() {
+                        println!(
+                            "e{i}^2 = {}",
+                            match square {
+                                metric::Square::Pos => "1",
+                                metric::Square::Neg => "-1",
+                                metric::Square::Zero => "0",
+                            }
+                        )
+                    }
                 }
                 _ => {
                     println!("Unknown command. Use :h to see a help screen.");
