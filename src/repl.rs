@@ -11,6 +11,10 @@ use crate::{
 #[derive(StructOpt, Debug)]
 #[structopt()]
 struct Options {
+    /// Expression to evaluate. Otherwise enter interactive mode
+    #[structopt()]
+    expression: Option<String>,
+
     /// Number of dimensions with metric 1.
     #[structopt(short, long)]
     positive: Option<usize>,
@@ -23,9 +27,21 @@ struct Options {
     #[structopt(short, long)]
     zero: Option<usize>,
 
-    /// Expression to evaluate. Otherwise enter interactive mode
-    #[structopt()]
-    expression: Option<String>,
+    /// Use metric of complex numbers.
+    #[structopt(long)]
+    complex: bool,
+
+    /// Use metric of hyperbolic numbers.
+    #[structopt(long)]
+    hyperbolic: bool,
+
+    /// Use metric of dual numbers.
+    #[structopt(long)]
+    dual: bool,
+
+    /// Plane-based geometric algebra.
+    #[structopt(long)]
+    pga: Option<usize>,
 }
 
 fn eval(input: &str, metric: &Metric) {
@@ -52,20 +68,31 @@ pub fn repl() {
     let options = Options::from_args();
 
     let mut metric = metric::Metric(vec![]);
-    if let Some(p) = options.positive {
-        metric
-            .0
-            .extend(std::iter::repeat(metric::Square::Pos).take(p));
-    }
-    if let Some(q) = options.negative {
-        metric
-            .0
-            .extend(std::iter::repeat(metric::Square::Neg).take(q));
-    }
-    if let Some(r) = options.zero {
-        metric
-            .0
-            .extend(std::iter::repeat(metric::Square::Zero).take(r));
+    if options.hyperbolic {
+        metric.0 = vec![metric::Square::Pos];
+    } else if options.complex {
+        metric.0 = vec![metric::Square::Neg];
+    } else if options.dual {
+        metric.0 = vec![metric::Square::Zero];
+    } else if let Some(n) = options.pga {
+        metric.0 = vec![metric::Square::Pos; n];
+        metric.0.push(metric::Square::Zero);
+    } else {
+        if let Some(p) = options.positive {
+            metric
+                .0
+                .extend(std::iter::repeat(metric::Square::Pos).take(p));
+        }
+        if let Some(q) = options.negative {
+            metric
+                .0
+                .extend(std::iter::repeat(metric::Square::Neg).take(q));
+        }
+        if let Some(r) = options.zero {
+            metric
+                .0
+                .extend(std::iter::repeat(metric::Square::Zero).take(r));
+        }
     }
 
     if metric.0.len() > 9 {
