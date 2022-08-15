@@ -14,6 +14,7 @@ pub enum Token {
     Plus,
     Minus,
     Tilde,
+    Excl,
     Wedge,
     AntiWedge,
     LeftContraction,
@@ -47,6 +48,7 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
         just(r"*").to(Token::Asteriks),
         just(r"/").to(Token::Solidus),
         just(r"^").to(Token::Hat),
+        just(r"!").to(Token::Excl),
     ))
     .boxed();
 
@@ -116,6 +118,7 @@ impl std::fmt::Display for Token {
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),
             Token::Tilde => write!(f, "~"),
+            Token::Excl => write!(f, "!"),
             Token::Wedge => write!(f, "/\\"),
             Token::AntiWedge => write!(f, "\\/"),
             Token::LeftContraction => write!(f, "-|"),

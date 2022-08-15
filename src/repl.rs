@@ -136,9 +136,10 @@ pub fn repl() {
                     println!(r"Division:           a / b");
                     println!(r"Power:              a^b");
                     println!(r"Negation:           -a");
-                    println!(r"Dualization:        a*");
-                    println!(r"Reversal:           a~");
-                    println!(r"Conjugate:          a-");
+                    println!(r"Dualization:        *a");
+                    println!(r"Reversal:           ~a");
+                    println!(r"Conjugate:          !a");
+                    println!(r"Grade Involution:   ^a");
                     println!(r"Norm:               [a]");
                 }
                 "m" => {

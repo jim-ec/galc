@@ -30,6 +30,6 @@ pub enum Unary {
     Dual,
     Reverse,
     Inverse,
-    Involute,
+    Involution,
     Conjugate,
 }

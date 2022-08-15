@@ -100,7 +100,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Polynomial, Undefined> {
                     .clone()
                     .inverse(metric)
                     .ok_or(Undefined(format!("Inverse not defined for {x}"))),
-                Unary::Involute => Ok(x.involute()),
+                Unary::Involution => Ok(x.involute()),
                 Unary::Conjugate => Ok(x.conjugate()),
             }
         }

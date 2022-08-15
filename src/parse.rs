@@ -70,31 +70,20 @@ fn operand_parser<'a>(
     .boxed()
 }
 
-fn unary_parser<'a>(
+fn binary_parser<'a>(
     expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
 ) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
-    select! {
+    let binary: BoxedParser<Token, Expr, Simple<Token>> = select! {
         Token::Minus => Unary::Neg,
+        Token::Asteriks => Unary::Dual,
+        Token::Tilde => Unary::Reverse,
+        Token::Excl => Unary::Conjugate,
+        Token::Hat => Unary::Involution,
     }
     .repeated()
     .then(operand_parser(expr))
     .foldr(|op, rhs| Expr::Unary(op, Box::new(rhs)))
-    .then(
-        select! {
-            Token::Asteriks => Unary::Dual,
-            Token::Tilde => Unary::Reverse,
-            Token::Minus => Unary::Conjugate,
-        }
-        .repeated(),
-    )
-    .foldl(|lhs, op| Expr::Unary(op, Box::new(lhs)))
-    .boxed()
-}
-
-fn binary_parser<'a>(
-    expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
-) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
-    let binary = unary_parser(expr.clone());
+    .boxed();
 
     let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
         .clone()
@@ -108,12 +97,7 @@ fn binary_parser<'a>(
 
     let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
         .clone()
-        .then(
-            just(Token::Whitespace)
-                .or_not()
-                .ignore_then(binary)
-                .repeated(),
-        )
+        .then(just(Token::Whitespace).ignore_then(binary).repeated())
         .foldl(|lhs, rhs| Expr::Binary(Binary::Geometric, Box::new(lhs), Box::new(rhs)))
         .boxed();
 
