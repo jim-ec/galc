@@ -1,3 +1,4 @@
+pub mod span;
 mod tokenize;
 
 use chumsky::prelude::*;

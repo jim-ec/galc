@@ -1,5 +1,7 @@
 use chumsky::prelude::*;
 
+use super::span::Spanned;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Token {
     Whitespace,
@@ -26,17 +28,22 @@ pub enum Token {
 }
 
 pub fn tokenize(input: &str) -> Result<Vec<Token>, Vec<Simple<char>>> {
-    tokenizer().parse(input)
+    // TODO: Pass token spans to parser instead of discarding them here.
+    tokenizer()
+        .parse(input)
+        .map(|tokens| tokens.into_iter().map(|Spanned(item, _)| item).collect())
 }
 
-fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clone + 'a {
-    let whitespace: BoxedParser<char, Token, Simple<char>> = filter(|&c: &char| c.is_whitespace())
-        .repeated()
-        .at_least(1)
-        .to(Token::Whitespace)
-        .boxed();
+fn tokenizer<'a>() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> + Clone + 'a {
+    let whitespace: BoxedParser<char, Spanned<Token>, Simple<char>> =
+        filter(|&c: &char| c.is_whitespace())
+            .repeated()
+            .at_least(1)
+            .to(Token::Whitespace)
+            .map_with_span(Spanned)
+            .boxed();
 
-    let operator: BoxedParser<char, Token, Simple<char>> = choice((
+    let operator: BoxedParser<char, Spanned<Token>, Simple<char>> = choice((
         just(r"+").to(Token::Plus),
         just(r"-").to(Token::Minus),
         just(r"~").to(Token::Tilde),
@@ -50,11 +57,15 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
         just(r"^").to(Token::Hat),
         just(r"!").to(Token::Excl),
     ))
+    .map_with_span(Spanned)
     .boxed();
 
-    let bottom: BoxedParser<char, Token, Simple<char>> = just(r"_|_").to(Token::Bottom).boxed();
+    let bottom: BoxedParser<char, Spanned<Token>, Simple<char>> = just(r"_|_")
+        .to(Token::Bottom)
+        .map_with_span(Spanned)
+        .boxed();
 
-    let number: BoxedParser<char, Token, Simple<char>> = text::int(10)
+    let number: BoxedParser<char, Spanned<Token>, Simple<char>> = text::int(10)
         .then(just('.').ignore_then(text::int(10)).or_not())
         .map(|(int, frac)| {
             Token::Number(match frac {
@@ -62,9 +73,10 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
                 None => int,
             })
         })
+        .map_with_span(Spanned)
         .boxed();
 
-    let basis: BoxedParser<char, Token, Simple<char>> = just('e')
+    let basis: BoxedParser<char, Spanned<Token>, Simple<char>> = just('e')
         .ignore_then(
             filter_map(|span, c: char| match c.to_digit(10) {
                 Some(x) => Ok(x as usize),
@@ -74,9 +86,10 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
             .at_least(1),
         )
         .map(Token::Basis)
+        .map_with_span(Spanned)
         .boxed();
 
-    let identifier: BoxedParser<char, Token, Simple<char>> =
+    let identifier: BoxedParser<char, Spanned<Token>, Simple<char>> =
         filter(|&c| unicode_ident::is_xid_start(c))
             .map(|c| String::from(c))
             .then(filter(|&c| unicode_ident::is_xid_continue(c)).repeated())
@@ -84,16 +97,17 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Token>, Error = Simple<char>> + Clon
                 s.push(c);
                 s
             })
-            .or(just("⊥".to_string()).or(just("_|_".to_string())))
             .map(Token::Identifier)
+            .map_with_span(Spanned)
             .boxed();
 
-    let delimiter: BoxedParser<char, Token, Simple<char>> = select! {
+    let delimiter: BoxedParser<char, Spanned<Token>, Simple<char>> = select! {
         '(' => Token::ParenOpen,
         ')' => Token::ParenClose,
         '[' => Token::BracketOpen,
         ']' => Token::BracketClose,
     }
+    .map_with_span(Spanned)
     .boxed();
 
     choice((
