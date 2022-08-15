@@ -89,6 +89,7 @@ impl Monomial {
     pub fn norm_squared(&self, metric: &Metric) -> f64 {
         self.product(Product::Scalar, &self.conjugate(), metric)
             .scalar
+            .abs()
     }
 
     pub fn norm(&self, metric: &Metric) -> f64 {
