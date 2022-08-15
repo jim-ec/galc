@@ -97,7 +97,12 @@ fn binary_parser<'a>(
 
     let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
         .clone()
-        .then(just(Token::Whitespace).ignore_then(binary).repeated())
+        .then(
+            just(Token::Whitespace)
+                .or_not()
+                .ignore_then(binary)
+                .repeated(),
+        )
         .foldl(|lhs, rhs| Expr::Binary(Binary::Geometric, Box::new(lhs), Box::new(rhs)))
         .boxed();
 
