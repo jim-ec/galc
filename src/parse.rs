@@ -1,15 +1,15 @@
 pub mod span;
-mod tokenize;
+mod token;
 
 use chumsky::prelude::*;
 use itertools::Itertools;
 
 use crate::interpret::expr::{Binary, Expr, Unary};
 
-use self::tokenize::Token;
+use self::token::Token;
 
 pub fn parse(string: &str) -> Option<Expr> {
-    match tokenize::tokenize(string) {
+    match token::tokenize(string) {
         Ok(tokens) => match expr_parser().parse(tokens) {
             Ok(expr) => Some(expr),
             Err(errors) => {
