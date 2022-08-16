@@ -2,42 +2,43 @@ pub mod span;
 mod token;
 
 use chumsky::prelude::*;
-use itertools::Itertools;
 
 use crate::interpret::expr::{Binary, Expr, Unary};
 
-use self::token::Token;
+use self::{span::Spanned, token::Token};
+
+type Range = std::ops::Range<usize>;
+
+fn report_error(span: Range) {
+    println!("Syntax error at {}..{}", span.start, span.end);
+}
 
 pub fn parse(string: &str) -> Option<Expr> {
     match token::tokenize(string) {
-        Ok(tokens) => match expr_parser().parse(tokens) {
-            Ok(expr) => Some(expr),
-            Err(errors) => {
-                for error in errors {
-                    println!(
-                        "Parsing error, expected one of: {}",
-                        error
-                            .expected()
-                            .flatten()
-                            .map(|token| format!("{token}"))
-                            .join(", ")
-                    );
-                    if let Some(found) = error.found() {
-                        println!("But got: {found}")
+        Ok(spanned_tokens) => {
+            let tokens: Vec<Token> = spanned_tokens
+                .iter()
+                .map(|Spanned(item, _)| item)
+                .cloned()
+                .collect();
+
+            match expr_parser().parse(tokens) {
+                Ok(expr) => Some(expr),
+                Err(errors) => {
+                    for error in errors {
+                        let span = Range {
+                            start: spanned_tokens[error.span().start].1.start,
+                            end: spanned_tokens[error.span().end - 1].1.end,
+                        };
+                        report_error(span);
                     }
+                    None
                 }
-                None
             }
-        },
+        }
         Err(errors) => {
             for error in errors {
-                println!(
-                    "Parsing error, expected one of: {}",
-                    error.expected().flatten().join(", ")
-                );
-                if let Some(found) = error.found() {
-                    println!("But got: {found}")
-                }
+                report_error(error.span());
             }
             None
         }

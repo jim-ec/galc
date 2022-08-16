@@ -27,11 +27,8 @@ pub enum Token {
     Hat,
 }
 
-pub fn tokenize(input: &str) -> Result<Vec<Token>, Vec<Simple<char>>> {
-    // TODO: Pass token spans to parser instead of discarding them here.
-    tokenizer()
-        .parse(input)
-        .map(|tokens| tokens.into_iter().map(|Spanned(item, _)| item).collect())
+pub fn tokenize(input: &str) -> Result<Vec<Spanned<Token>>, Vec<Simple<char>>> {
+    tokenizer().parse(input)
 }
 
 fn tokenizer<'a>() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char>> + Clone + 'a {
