@@ -1,15 +1,17 @@
+#[derive(Debug, Clone)]
 pub enum Expr {
     Number(f64),
     Pseudoscalar,
     Basis(Vec<usize>),
     Binary(Binary, Box<Expr>, Box<Expr>),
+    Power(Box<Expr>, isize),
     Unary(Unary, Box<Expr>),
     Norm(Box<Expr>),
     Unknown(String),
     Bottom,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Binary {
     Geometric,
     Exterior,
@@ -19,12 +21,11 @@ pub enum Binary {
     Inner,
     Scalar,
     Divide,
-    Power,
     Add,
     Sub,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Unary {
     Neg,
     Dual,

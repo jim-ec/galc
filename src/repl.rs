@@ -133,8 +133,8 @@ pub fn repl() {
                     println!(r"Right contraction:  a |- b");
                     println!(r"Inner product:      a | b");
                     println!(r"Scalar product:     a * b");
-                    println!(r"Division:           a / b");
-                    println!(r"Power:              a^b");
+                    println!(r"Division:           a / b  (b != 0)");
+                    println!(r"Integral Power:     a^n    (n ∈ ℤ)");
                     println!(r"Negation:           -a");
                     println!(r"Dualization:        *a");
                     println!(r"Reversal:           ~a");

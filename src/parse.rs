@@ -90,11 +90,16 @@ fn binary_parser<'a>(
     let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
         .clone()
         .then(
-            select! { Token::Hat => Binary::Power }
-                .then(binary)
+            just(Token::Hat)
+                .ignore_then(
+                    just(Token::Minus)
+                        .repeated()
+                        .then(select! { Token::Number(n) => n.parse().unwrap() })
+                        .foldr(|_, n: isize| -n),
+                )
                 .repeated(),
         )
-        .foldl(|lhs, (op, rhs)| Expr::Binary(op, Box::new(lhs), Box::new(rhs)))
+        .foldl(|lhs, rhs| Expr::Power(Box::new(lhs), rhs))
         .boxed();
 
     let binary: BoxedParser<Token, Expr, Simple<Token>> = binary

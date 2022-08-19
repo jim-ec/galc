@@ -118,24 +118,19 @@ impl Monomial {
         Some(inverse)
     }
 
-    pub fn power(&self, rhs: &Monomial, metric: &Metric) -> Option<Monomial> {
-        if rhs.grade() != 0 || !rhs.symbols.is_empty() {
-            return None;
-        }
-        let rhs = rhs.scalar.round() as isize;
-
+    pub fn power(&self, exponent: isize, metric: &Metric) -> Option<Monomial> {
         let mut power = Monomial {
             scalar: 1.0,
             symbols: Default::default(),
             basis: Basis::scalar(metric.dimension()),
         };
-        let monomial = if rhs > 0 {
+        let monomial = if exponent > 0 {
             self.clone()
         } else {
             self.inverse(metric)?
         };
 
-        for _ in 0..rhs.abs() {
+        for _ in 0..exponent.abs() {
             power = power.product(Product::Geometric, &monomial, metric);
         }
 

@@ -81,10 +81,6 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Polynomial, Undefined> {
                     Some(rhs) => lhs.product(Product::Geometric, rhs, metric),
                     None => return Err(Undefined(format!("Division by {rhs} not defined"))),
                 },
-                Binary::Power => lhs
-                    .clone()
-                    .power(rhs.clone(), metric)
-                    .ok_or(Undefined(format!("Power of {lhs} to {rhs} not defined")))?,
                 Binary::Add => lhs + rhs,
                 Binary::Sub => lhs + -rhs,
             })
@@ -104,6 +100,10 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Polynomial, Undefined> {
                 Unary::Conjugate => Ok(x.conjugate()),
             }
         }
+
+        Expr::Power(base, exponent) => Ok(eval(*base, metric)?
+            .power(exponent, metric)
+            .ok_or(Undefined(format!("Power undefined")))?),
 
         Expr::Norm(x) => {
             let x = eval(*x, metric)?;

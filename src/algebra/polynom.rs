@@ -61,14 +61,10 @@ impl Polynomial {
         result
     }
 
-    pub fn power(self, other: Polynomial, metric: &Metric) -> Option<Polynomial> {
-        if other.monomials.len() != 1 {
-            return None;
-        }
-
+    pub fn power(self, exponent: isize, metric: &Metric) -> Option<Polynomial> {
         let mut result = Polynomial::default();
         for monomial in self.monomials {
-            result = result + monomial.power(&other.monomials[0], metric)?;
+            result = result + monomial.power(exponent, metric)?;
         }
         Some(result)
     }
