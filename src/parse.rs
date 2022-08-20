@@ -68,6 +68,7 @@ fn operand_parser<'a>(
     .or(expr
         .clone()
         .delimited_by(just(Token::BracketOpen), just(Token::BracketClose))
+        .map_with_span(Spanned)
         .map(|expr| Expr::Norm(Box::new(expr))))
     .boxed()
 }

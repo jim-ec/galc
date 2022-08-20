@@ -1,3 +1,5 @@
+use crate::parse::span::Spanned;
+
 #[derive(Debug, Clone)]
 pub enum Expr {
     Number(f64),
@@ -6,7 +8,7 @@ pub enum Expr {
     Binary(Binary, Box<Expr>, Box<Expr>),
     Power(Box<Expr>, isize),
     Unary(Unary, Box<Expr>),
-    Norm(Box<Expr>),
+    Norm(Box<Spanned<Expr>>),
     Unknown(String),
     Bottom,
 }

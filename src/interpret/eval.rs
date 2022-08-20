@@ -106,7 +106,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Polynomial, Undefined> {
             .ok_or(Undefined(format!("Power undefined")))?),
 
         Expr::Norm(x) => {
-            let x = eval(*x, metric)?;
+            let x = eval((*x).0, metric)?;
             let norm = x.norm(metric);
             Ok(Monomial {
                 scalar: norm,
