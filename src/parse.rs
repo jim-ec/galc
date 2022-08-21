@@ -23,7 +23,7 @@ pub fn parse(string: &str) -> Option<Spanned<Expr>> {
                 .collect();
 
             match expr_parser().parse(tokens) {
-                Ok(expr) => Some(expr),
+                Ok(expr) => Some(span::translate_spans(expr, &spanned_tokens)),
                 Err(errors) => {
                     for error in errors {
                         let span = Range {
