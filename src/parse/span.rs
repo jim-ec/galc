@@ -2,8 +2,10 @@ use std::ops::Range;
 
 use crate::parse::{Expr, Token};
 
+pub type Span = Range<usize>;
+
 #[derive(Debug, Clone)]
-pub struct Spanned<T>(pub T, pub Range<usize>);
+pub struct Spanned<T>(pub T, pub Span);
 
 pub fn translate_spans(expr: Spanned<Expr>, tokens: &Vec<Spanned<Token>>) -> Spanned<Expr> {
     let start = tokens[expr.1.start].1.start;

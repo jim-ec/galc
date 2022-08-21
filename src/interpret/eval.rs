@@ -4,14 +4,15 @@ use crate::algebra::{
     basis::Basis, metric::Metric, monom::Monomial, polynom::Polynomial, sign::Sign, Product,
 };
 
-use crate::parse::span::Spanned;
+use crate::parse::span::{Span, Spanned};
 
 use super::expr::{Binary, Expr, Unary};
 
-pub struct Undefined(pub String);
+pub struct Undefined(pub Span);
 
 pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefined> {
     let dimension = metric.dimension();
+    let span = expr.1;
 
     match expr.0 {
         Expr::Number(n) => Ok(Monomial {
@@ -31,10 +32,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
         Expr::Basis(vectors) => {
             for &vector in &vectors {
                 if vector >= dimension {
-                    return Err(Undefined(format!(
-                        "Invalid basis-vector e{vector} for algebra of dimension {}",
-                        dimension
-                    )));
+                    return Err(Undefined(span));
                 }
             }
             if let Some((sign, basis)) = vectors
@@ -81,7 +79,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
                 Binary::Scalar => lhs.product(Product::Scalar, rhs, metric),
                 Binary::Divide => match rhs.clone().inverse(metric) {
                     Some(rhs) => lhs.product(Product::Geometric, rhs, metric),
-                    None => return Err(Undefined(format!("Division by {rhs} not defined"))),
+                    None => return Err(Undefined(span)),
                 },
                 Binary::Add => lhs + rhs,
                 Binary::Sub => lhs + -rhs,
@@ -94,10 +92,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
                 Unary::Neg => Ok(-x),
                 Unary::Dual => Ok(x.dual()),
                 Unary::Reverse => Ok(x.reverse()),
-                Unary::Inverse => x
-                    .clone()
-                    .inverse(metric)
-                    .ok_or(Undefined(format!("Inverse not defined for {x}"))),
+                Unary::Inverse => x.clone().inverse(metric).ok_or(Undefined(span)),
                 Unary::Involution => Ok(x.involute()),
                 Unary::Conjugate => Ok(x.conjugate()),
             }
@@ -105,7 +100,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
 
         Expr::Power(base, exponent) => Ok(eval(*base, metric)?
             .power(exponent, metric)
-            .ok_or(Undefined(format!("Power undefined")))?),
+            .ok_or(Undefined(span))?),
 
         Expr::Norm(x) => {
             let x = eval(*x, metric)?;
@@ -125,6 +120,6 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
         }
         .into()),
 
-        Expr::Bottom => Err(Undefined(format!("Undefined computation"))),
+        Expr::Bottom => Err(Undefined(span)),
     }
 }

@@ -57,8 +57,10 @@ fn eval(input: &str, metric: &Metric) {
         Ok(result) => {
             println!("  = {}", result.merge_monomials());
         }
-        Err(eval::Undefined(cause)) => {
-            println!("  {}", cause);
+        Err(eval::Undefined(span)) => {
+            (0..span.start).for_each(|_| print!(" "));
+            span.for_each(|_| print!("^"));
+            println!();
             println!("  = _|_");
         }
     };
@@ -101,6 +103,7 @@ pub fn repl() {
     }
 
     if let Some(expression) = options.expression {
+        println!("{}", expression);
         eval(&expression, &metric);
         return;
     }
