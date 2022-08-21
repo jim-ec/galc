@@ -2,11 +2,7 @@ use std::io::stdin;
 
 use structopt::StructOpt;
 
-use crate::{
-    algebra::metric::{self, Metric},
-    interpret::eval,
-    parse,
-};
+use crate::{algebra::metric, interpret::eval, parse};
 
 #[derive(StructOpt, Debug)]
 #[structopt()]
@@ -42,28 +38,6 @@ struct Options {
     /// Plane-based geometric algebra.
     #[structopt(long)]
     pga: Option<usize>,
-}
-
-fn eval(input: &str, metric: &Metric) {
-    let expr = match parse::parse(input) {
-        Some(expr) => expr,
-        None => {
-            println!();
-            return;
-        }
-    };
-
-    match eval::eval(expr, &metric) {
-        Ok(result) => {
-            println!("  = {}", result.merge_monomials());
-        }
-        Err(eval::Undefined(span)) => {
-            (0..span.start).for_each(|_| print!(" "));
-            span.for_each(|_| print!("^"));
-            println!();
-            println!("  = _|_");
-        }
-    };
 }
 
 pub fn repl() {
@@ -103,8 +77,14 @@ pub fn repl() {
     }
 
     if let Some(expression) = options.expression {
-        println!("{}", expression);
-        eval(&expression, &metric);
+        let expr = match parse::parse(&expression) {
+            Some(expr) => expr,
+            None => return,
+        };
+        match eval::eval(expr, &(&metric)) {
+            Ok(result) => println!("{}", result.optimize()),
+            Err(eval::Undefined(_)) => println!("_|_"),
+        };
         return;
     }
 
@@ -162,7 +142,25 @@ pub fn repl() {
                 }
             }
         } else {
-            eval(input, &metric);
+            let expr = match parse::parse(input) {
+                Some(expr) => expr,
+                None => {
+                    println!();
+                    return;
+                }
+            };
+
+            match eval::eval(expr, &(&metric)) {
+                Ok(result) => {
+                    println!("  = {}", result.optimize());
+                }
+                Err(eval::Undefined(span)) => {
+                    (0..span.start).for_each(|_| print!(" "));
+                    span.for_each(|_| print!("^"));
+                    println!();
+                    println!("  = _|_");
+                }
+            };
         }
 
         println!();

@@ -127,7 +127,7 @@ impl Polynomial {
     }
 
     /// Merges monomials with same bases and same symbols.
-    pub fn merge_monomials(self) -> Polynomial {
+    fn merge_monomials(self) -> Polynomial {
         let mut result = Polynomial::default();
         for monomial in self.monomials {
             let mut found_monomial = false;
@@ -148,6 +148,10 @@ impl Polynomial {
             }
         }
         result
+    }
+
+    pub fn optimize(self) -> Polynomial {
+        self.merge_monomials()
     }
 }
 
