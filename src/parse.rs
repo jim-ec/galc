@@ -7,12 +7,6 @@ use crate::interpret::expr::{Binary, Expr, Unary};
 
 use self::{span::Spanned, token::Token};
 
-type Range = std::ops::Range<usize>;
-
-fn report_error(span: Range) {
-    println!("Syntax error at {}..{}", span.start, span.end);
-}
-
 pub fn parse(string: &str) -> Option<Spanned<Expr>> {
     match token::tokenize(string) {
         Ok(spanned_tokens) => {
@@ -24,22 +18,14 @@ pub fn parse(string: &str) -> Option<Spanned<Expr>> {
 
             match expr_parser().parse(tokens) {
                 Ok(expr) => Some(span::translate_spans(expr, &spanned_tokens)),
-                Err(errors) => {
-                    for error in errors {
-                        let span = Range {
-                            start: spanned_tokens[error.span().start].1.start,
-                            end: spanned_tokens[error.span().end - 1].1.end,
-                        };
-                        report_error(span);
-                    }
+                Err(_) => {
+                    println!("Syntax error");
                     None
                 }
             }
         }
-        Err(errors) => {
-            for error in errors {
-                report_error(error.span());
-            }
+        Err(_) => {
+            println!("Syntax error");
             None
         }
     }

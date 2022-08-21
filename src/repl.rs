@@ -146,7 +146,7 @@ pub fn repl() {
                 Some(expr) => expr,
                 None => {
                     println!();
-                    return;
+                    continue;
                 }
             };
 
