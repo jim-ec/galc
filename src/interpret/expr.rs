@@ -5,12 +5,12 @@ pub enum Expr {
     Number(f64),
     Pseudoscalar,
     Basis(Vec<usize>),
-    Binary(Binary, Box<Expr>, Box<Expr>),
-    Power(Box<Expr>, isize),
-    Unary(Unary, Box<Expr>),
-    Norm(Box<Spanned<Expr>>),
     Unknown(String),
     Bottom,
+    Binary(Binary, Box<Spanned<Expr>>, Box<Spanned<Expr>>),
+    Power(Box<Spanned<Expr>>, isize),
+    Unary(Unary, Box<Spanned<Expr>>),
+    Norm(Box<Spanned<Expr>>),
 }
 
 #[derive(Debug, Clone, Copy)]

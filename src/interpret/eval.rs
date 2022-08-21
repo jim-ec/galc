@@ -4,14 +4,16 @@ use crate::algebra::{
     basis::Basis, metric::Metric, monom::Monomial, polynom::Polynomial, sign::Sign, Product,
 };
 
+use crate::parse::span::Spanned;
+
 use super::expr::{Binary, Expr, Unary};
 
 pub struct Undefined(pub String);
 
-pub fn eval(expr: Expr, metric: &Metric) -> Result<Polynomial, Undefined> {
+pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefined> {
     let dimension = metric.dimension();
 
-    match expr {
+    match expr.0 {
         Expr::Number(n) => Ok(Monomial {
             scalar: n,
             symbols: Default::default(),
@@ -106,7 +108,7 @@ pub fn eval(expr: Expr, metric: &Metric) -> Result<Polynomial, Undefined> {
             .ok_or(Undefined(format!("Power undefined")))?),
 
         Expr::Norm(x) => {
-            let x = eval((*x).0, metric)?;
+            let x = eval(*x, metric)?;
             let norm = x.norm(metric);
             Ok(Monomial {
                 scalar: norm,

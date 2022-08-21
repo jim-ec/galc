@@ -13,7 +13,7 @@ fn report_error(span: Range) {
     println!("Syntax error at {}..{}", span.start, span.end);
 }
 
-pub fn parse(string: &str) -> Option<Expr> {
+pub fn parse(string: &str) -> Option<Spanned<Expr>> {
     match token::tokenize(string) {
         Ok(spanned_tokens) => {
             let tokens: Vec<Token> = spanned_tokens
@@ -45,7 +45,7 @@ pub fn parse(string: &str) -> Option<Expr> {
     }
 }
 
-fn expr_parser<'a>() -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
+fn expr_parser<'a>() -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone + 'a {
     recursive(|expr| binary_parser(expr.clone()))
         .padded_by(just(Token::Whitespace).repeated())
         .then_ignore(end())
@@ -53,8 +53,8 @@ fn expr_parser<'a>() -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone 
 }
 
 fn operand_parser<'a>(
-    expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
-) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
+    expr: impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone + 'a,
+) -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone + 'a {
     select! {
         Token::Number(number) => Expr::Number(number.parse().unwrap()),
         Token::Basis(basis) => Expr::Basis(basis),
@@ -62,33 +62,40 @@ fn operand_parser<'a>(
         Token::Identifier(identifier) => Expr::Unknown(identifier),
         Token::Bottom => Expr::Bottom,
     }
+    .map_with_span(Spanned)
     .or(expr
         .clone()
         .delimited_by(just(Token::ParenOpen), just(Token::ParenClose)))
     .or(expr
         .clone()
         .delimited_by(just(Token::BracketOpen), just(Token::BracketClose))
-        .map_with_span(Spanned)
-        .map(|expr| Expr::Norm(Box::new(expr))))
+        .map(|expr| Expr::Norm(Box::new(expr)))
+        .map_with_span(Spanned))
     .boxed()
 }
 
 fn binary_parser<'a>(
-    expr: impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a,
-) -> impl Parser<Token, Expr, Error = Simple<Token>> + Clone + 'a {
-    let binary: BoxedParser<Token, Expr, Simple<Token>> = select! {
+    expr: impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone + 'a,
+) -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone + 'a {
+    let binary = select! {
         Token::Minus => Unary::Neg,
         Token::Asteriks => Unary::Dual,
         Token::Tilde => Unary::Reverse,
         Token::Excl => Unary::Conjugate,
         Token::Hat => Unary::Involution,
     }
+    .map_with_span(Spanned)
     .repeated()
     .then(operand_parser(expr))
-    .foldr(|op, rhs| Expr::Unary(op, Box::new(rhs)))
+    .foldr(|op, rhs| {
+        Spanned(
+            Expr::Unary(op.0, Box::new(rhs.clone())),
+            op.1.start..rhs.1.end,
+        )
+    })
     .boxed();
 
-    let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
+    let binary = binary
         .clone()
         .then(
             just(Token::Hat)
@@ -98,12 +105,18 @@ fn binary_parser<'a>(
                         .then(select! { Token::Number(n) => n.parse().unwrap() })
                         .foldr(|_, n: isize| -n),
                 )
+                .map_with_span(Spanned)
                 .repeated(),
         )
-        .foldl(|lhs, rhs| Expr::Power(Box::new(lhs), rhs))
+        .foldl(|lhs, rhs| {
+            Spanned(
+                Expr::Power(Box::new(lhs.clone()), rhs.0),
+                lhs.1.start..rhs.1.end,
+            )
+        })
         .boxed();
 
-    let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
+    let binary = binary
         .clone()
         .then(
             just(Token::Whitespace)
@@ -111,10 +124,19 @@ fn binary_parser<'a>(
                 .ignore_then(binary)
                 .repeated(),
         )
-        .foldl(|lhs, rhs| Expr::Binary(Binary::Geometric, Box::new(lhs), Box::new(rhs)))
+        .foldl(|lhs, rhs| {
+            Spanned(
+                Expr::Binary(
+                    Binary::Geometric,
+                    Box::new(lhs.clone()),
+                    Box::new(rhs.clone()),
+                ),
+                lhs.1.start..rhs.1.end,
+            )
+        })
         .boxed();
 
-    let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
+    let binary = binary
         .clone()
         .then(
             just(Token::Whitespace)
@@ -131,10 +153,15 @@ fn binary_parser<'a>(
                 .then(binary)
                 .repeated(),
         )
-        .foldl(|lhs, (op, rhs)| Expr::Binary(op, Box::new(lhs), Box::new(rhs)))
+        .foldl(|lhs, (op, rhs)| {
+            Spanned(
+                Expr::Binary(op, Box::new(lhs.clone()), Box::new(rhs.clone())),
+                lhs.1.start..rhs.1.end,
+            )
+        })
         .boxed();
 
-    let binary: BoxedParser<Token, Expr, Simple<Token>> = binary
+    let binary = binary
         .clone()
         .then(
             just(Token::Whitespace)
@@ -146,7 +173,12 @@ fn binary_parser<'a>(
                 .then(binary)
                 .repeated(),
         )
-        .foldl(|lhs, (op, rhs)| Expr::Binary(op, Box::new(lhs), Box::new(rhs)))
+        .foldl(|lhs, (op, rhs)| {
+            Spanned(
+                Expr::Binary(op, Box::new(lhs.clone()), Box::new(rhs.clone())),
+                lhs.1.start..rhs.1.end,
+            )
+        })
         .boxed();
 
     binary
