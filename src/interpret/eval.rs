@@ -8,7 +8,7 @@ use crate::parse::span::{Span, Spanned};
 
 use super::expr::{Binary, Expr, Unary};
 
-pub struct Undefined(pub Span);
+pub struct Undefined(pub Vec<Span>);
 
 pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefined> {
     let dimension = metric.dimension();
@@ -32,7 +32,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
         Expr::Basis(vectors) => {
             for &vector in &vectors {
                 if vector >= dimension {
-                    return Err(Undefined(span));
+                    return Err(Undefined(vec![span]));
                 }
             }
             if let Some((sign, basis)) = vectors
@@ -67,8 +67,17 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
         }
 
         Expr::Binary(binary, lhs, rhs) => {
-            let lhs = eval(*lhs, metric)?;
-            let rhs = eval(*rhs, metric)?;
+            let lhs = eval(*lhs, metric);
+            let rhs = eval(*rhs, metric);
+
+            let (lhs, rhs) = match (lhs, rhs) {
+                (Err(Undefined(mut lhs)), Err(Undefined(rhs))) => {
+                    lhs.extend(rhs);
+                    return Err(Undefined(lhs));
+                }
+                (lhs, rhs) => (lhs?, rhs?),
+            };
+
             Ok(match binary {
                 Binary::Geometric => lhs.product(Product::Geometric, rhs, metric),
                 Binary::Exterior => lhs.product(Product::Exterior, rhs, metric),
@@ -79,7 +88,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
                 Binary::Scalar => lhs.product(Product::Scalar, rhs, metric),
                 Binary::Divide => match rhs.clone().inverse(metric) {
                     Some(rhs) => lhs.product(Product::Geometric, rhs, metric),
-                    None => return Err(Undefined(span)),
+                    None => return Err(Undefined(vec![span])),
                 },
                 Binary::Add => lhs + rhs,
                 Binary::Sub => lhs + -rhs,
@@ -92,7 +101,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
                 Unary::Neg => Ok(-x),
                 Unary::Dual => Ok(x.dual()),
                 Unary::Reverse => Ok(x.reverse()),
-                Unary::Inverse => x.clone().inverse(metric).ok_or(Undefined(span)),
+                Unary::Inverse => x.clone().inverse(metric).ok_or(Undefined(vec![span])),
                 Unary::Involution => Ok(x.involute()),
                 Unary::Conjugate => Ok(x.conjugate()),
             }
@@ -100,7 +109,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
 
         Expr::Power(base, exponent) => Ok(eval(*base, metric)?
             .power(exponent, metric)
-            .ok_or(Undefined(span))?),
+            .ok_or(Undefined(vec![span]))?),
 
         Expr::Norm(x) => {
             let x = eval(*x, metric)?;
@@ -120,6 +129,6 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
         }
         .into()),
 
-        Expr::Bottom => Err(Undefined(span)),
+        Expr::Bottom => Err(Undefined(vec![span])),
     }
 }

@@ -154,9 +154,13 @@ pub fn repl() {
                 Ok(result) => {
                     println!("  = {}", result.optimize());
                 }
-                Err(eval::Undefined(span)) => {
-                    (0..span.start).for_each(|_| print!(" "));
-                    span.for_each(|_| print!("^"));
+                Err(eval::Undefined(spans)) => {
+                    let mut end = 0;
+                    for span in spans {
+                        (end..span.start).for_each(|_| print!(" "));
+                        end = span.end;
+                        span.for_each(|_| print!("^"));
+                    }
                     println!();
                     println!("  = _|_");
                 }
