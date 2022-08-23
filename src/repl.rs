@@ -93,12 +93,12 @@ pub fn repl() {
         stdin()
             .read_line(&mut input)
             .expect("Failed read from stdin");
-        let input = input.trim();
+        let trimmed_input = input.trim();
 
-        if input.is_empty() {
+        if trimmed_input.is_empty() {
             continue;
-        } else if input.starts_with(":") {
-            match &input[1..] {
+        } else if trimmed_input.starts_with(":") {
+            match &trimmed_input[1..] {
                 "q" => return,
                 "h" => {
                     println!("Commands");
@@ -142,7 +142,7 @@ pub fn repl() {
                 }
             }
         } else {
-            let expr = match parse::parse(input) {
+            let expr = match parse::parse(&input) {
                 Some(expr) => expr,
                 None => {
                     println!();
