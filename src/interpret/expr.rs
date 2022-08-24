@@ -1,8 +1,10 @@
 use crate::parse::span::Spanned;
 
+use num::BigRational;
+
 #[derive(Debug, Clone)]
 pub enum Expr {
-    Number(f64),
+    Number(BigRational),
     Pseudoscalar,
     Basis(Vec<usize>),
     Unknown(String),

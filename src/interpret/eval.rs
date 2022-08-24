@@ -1,4 +1,5 @@
 use common_macros::hash_map;
+use num::{BigRational, One, Zero};
 
 use crate::algebra::{
     basis::Basis, metric::Metric, monom::Monomial, polynom::Polynomial, sign::Sign, Product,
@@ -23,7 +24,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
         .into()),
 
         Expr::Pseudoscalar => Ok(Monomial {
-            scalar: 1.0,
+            scalar: BigRational::one(),
             symbols: Default::default(),
             basis: Basis::pseudoscalar(dimension),
         }
@@ -51,14 +52,14 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
                 )
             {
                 Ok(Monomial {
-                    scalar: sign * 1.0,
+                    scalar: sign * BigRational::one(),
                     symbols: Default::default(),
                     basis,
                 }
                 .into())
             } else {
                 Ok(Monomial {
-                    scalar: 0.0,
+                    scalar: BigRational::zero(),
                     symbols: Default::default(),
                     basis: Basis::scalar(dimension),
                 }
@@ -123,7 +124,7 @@ pub fn eval(expr: Spanned<Expr>, metric: &Metric) -> Result<Polynomial, Undefine
         }
 
         Expr::Unknown(name) => Ok(Monomial {
-            scalar: 1.0,
+            scalar: BigRational::one(),
             symbols: hash_map![name => 1],
             basis: Basis::scalar(dimension),
         }

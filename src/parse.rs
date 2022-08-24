@@ -42,7 +42,12 @@ fn operand_parser<'a>(
     expr: impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone + 'a,
 ) -> impl Parser<Token, Spanned<Expr>, Error = Simple<Token>> + Clone + 'a {
     select! {
-        Token::Number(number) => Expr::Number(number.parse().unwrap()),
+        Token::Number(number) => {
+            match number.parse() {
+                Ok(number) => Expr::Number(number),
+                Err(_) => Expr::Bottom
+            }
+        },
         Token::Basis(basis) => Expr::Basis(basis),
         Token::Identifier(identifier) if identifier == "i" => Expr::Pseudoscalar,
         Token::Identifier(identifier) => Expr::Unknown(identifier),

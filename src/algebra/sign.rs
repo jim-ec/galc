@@ -1,3 +1,5 @@
+use num::BigRational;
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Sign {
     Pos,
@@ -28,10 +30,10 @@ impl std::ops::Mul for Sign {
     }
 }
 
-impl std::ops::Mul<f64> for Sign {
-    type Output = f64;
+impl std::ops::Mul<BigRational> for Sign {
+    type Output = BigRational;
 
-    fn mul(self, rhs: f64) -> Self::Output {
+    fn mul(self, rhs: BigRational) -> Self::Output {
         match self {
             Sign::Pos => rhs,
             Sign::Neg => -rhs,

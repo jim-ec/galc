@@ -63,11 +63,11 @@ fn tokenizer<'a>() -> impl Parser<char, Vec<Spanned<Token>>, Error = Simple<char
         .boxed();
 
     let number: BoxedParser<char, Spanned<Token>, Simple<char>> = text::int(10)
-        .then(just('.').ignore_then(text::int(10)).or_not())
-        .map(|(int, frac)| {
-            Token::Number(match frac {
-                Some(frac) => format!("{int}.{frac}"),
-                None => int,
+        .then(just('/').ignore_then(text::int(10)).or_not())
+        .map(|(denom, numerator)| {
+            Token::Number(match numerator {
+                Some(numerator) => format!("{denom}/{numerator}"),
+                None => denom,
             })
         })
         .map_with_span(Spanned)

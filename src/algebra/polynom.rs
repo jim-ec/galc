@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use num::BigRational;
 
 use super::{metric::Metric, monom::Monomial, Product};
 
@@ -119,7 +120,7 @@ impl Polynomial {
         }
     }
 
-    pub fn norm(self, metric: &Metric) -> f64 {
+    pub fn norm(self, metric: &Metric) -> BigRational {
         self.monomials
             .into_iter()
             .map(|monomial| monomial.norm(metric))
@@ -135,7 +136,7 @@ impl Polynomial {
                 if monomial.basis == result_monomial.basis
                     && monomial.symbols == result_monomial.symbols
                 {
-                    result_monomial.scalar += monomial.scalar;
+                    result_monomial.scalar += monomial.scalar.clone();
                     result_monomial
                         .symbols
                         .extend(monomial.symbols.clone().into_iter());

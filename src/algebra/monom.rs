@@ -1,12 +1,18 @@
 use itertools::Itertools;
 
+use num::{BigRational, One, Signed, Zero};
+
 use std::collections::HashMap;
 
-use super::{basis::Basis, metric::Metric, Product};
+use super::{
+    basis::Basis,
+    metric::{Metric, Square},
+    Product,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Monomial {
-    pub scalar: f64,
+    pub scalar: BigRational,
     pub symbols: HashMap<String, isize>,
     pub basis: Basis,
 }
@@ -33,13 +39,13 @@ impl Monomial {
             }
 
             Monomial {
-                scalar: sign * self.scalar * rhs.scalar,
+                scalar: sign * self.scalar.clone() * rhs.scalar.clone(),
                 symbols,
                 basis,
             }
         } else {
             Monomial {
-                scalar: 0.0,
+                scalar: BigRational::zero(),
                 symbols: Default::default(),
                 basis: Basis::scalar(metric.dimension()),
             }
@@ -48,7 +54,7 @@ impl Monomial {
 
     pub fn reverse(&self) -> Monomial {
         Monomial {
-            scalar: self.basis.reverse() * self.scalar,
+            scalar: self.basis.reverse() * self.scalar.clone(),
             symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
@@ -56,7 +62,7 @@ impl Monomial {
 
     pub fn involute(&self) -> Monomial {
         Monomial {
-            scalar: self.basis.involution() * self.scalar,
+            scalar: self.basis.involution() * self.scalar.clone(),
             symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
@@ -64,7 +70,7 @@ impl Monomial {
 
     pub fn conjugate(&self) -> Monomial {
         Monomial {
-            scalar: self.basis.conjugate() * self.scalar,
+            scalar: self.basis.conjugate() * self.scalar.clone(),
             symbols: self.symbols.clone(),
             basis: self.basis.clone(),
         }
@@ -72,7 +78,7 @@ impl Monomial {
 
     pub fn dual(&self) -> Monomial {
         Monomial {
-            scalar: self.scalar,
+            scalar: self.scalar.clone(),
             symbols: self.symbols.clone(),
             basis: self.basis.dual(),
         }
@@ -86,14 +92,19 @@ impl Monomial {
         self.basis.anti_grade()
     }
 
-    pub fn norm_squared(&self, metric: &Metric) -> f64 {
+    pub fn norm_squared(&self, metric: &Metric) -> BigRational {
         self.product(Product::Scalar, &self.conjugate(), metric)
             .scalar
             .abs()
     }
 
-    pub fn norm(&self, metric: &Metric) -> f64 {
-        self.norm_squared(metric).sqrt()
+    pub fn norm(&self, metric: &Metric) -> BigRational {
+        for (i, &vector) in self.basis.0.iter().enumerate() {
+            if vector && metric.0[i] == Square::Zero {
+                return BigRational::zero();
+            }
+        }
+        self.scalar.abs()
     }
 
     /// The inverse can be defined as `~A / (~A * A)`.
@@ -103,7 +114,7 @@ impl Monomial {
     /// On the other hand, `A * inverse(A) = 1` always holds, unless `A` vanishes.
     /// `inverse` thus behaves as a true inverse of the geometric product.
     pub fn inverse(&self, metric: &Metric) -> Option<Monomial> {
-        if self.norm_squared(metric) == 0.0 {
+        if self.norm_squared(metric) == BigRational::zero() {
             return None;
         }
 
@@ -120,7 +131,7 @@ impl Monomial {
 
     pub fn power(&self, exponent: isize, metric: &Metric) -> Option<Monomial> {
         let mut power = Monomial {
-            scalar: 1.0,
+            scalar: BigRational::one(),
             symbols: Default::default(),
             basis: Basis::scalar(metric.dimension()),
         };
@@ -150,7 +161,7 @@ impl std::ops::Neg for Monomial {
     }
 }
 
-impl std::ops::Mul<Monomial> for f64 {
+impl std::ops::Mul<Monomial> for BigRational {
     type Output = Monomial;
 
     fn mul(self, rhs: Monomial) -> Self::Output {
@@ -178,9 +189,9 @@ impl std::fmt::Display for Monomial {
             .join(" ");
 
         let just_scalar = symbols.is_empty() && self.basis.grade() == 0;
-        if self.scalar == -1.0 && !just_scalar {
+        if self.scalar == -BigRational::one() && !just_scalar {
             write!(f, "-")?;
-        } else if self.scalar != 1.0 || just_scalar {
+        } else if self.scalar != BigRational::one() || just_scalar {
             write!(f, "{}", self.scalar)?;
             if !just_scalar {
                 write!(f, " ")?;
