@@ -109,6 +109,8 @@ pub fn repl() {
                     println!();
                     println!("Expressions");
                     println!("-----------");
+                    println!(r"Integer:            n");
+                    println!(r"Ratio:              p/q    (q != 0)");
                     println!(r"Geometric product:  a b");
                     println!(r"Exteriour product:  a /\ b");
                     println!(r"Regressive product: a \/ b");
